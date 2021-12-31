@@ -15,14 +15,24 @@ class ActualizarController extends Controller {
 	
 	public function getImportar(){
 	    // Registrar actividades del programa
-		/*$sql = '
+	    
+	    //Resultados Transversal
+	    /*$sql = "select fas_id, com_descripcion, res_descripcion, act_descripcion, pla_can_hor_presenciales, pla_tip_id 
+	    from sep_plantilla pla, sep_plantilla_detalle pla_det 
+	    where pla.pla_id = pla_det.pla_id and pla.prog_codigo = 223310 and pla_det.fas_id = 5";
+	    $datosPlantilla = DB::select($sql);*/
+	    
+	    // Resultados completos	
+	    /*
+		$sql = '
 			select 	fas_id, com_descripcion, res_descripcion,
 					act_descripcion, pla_can_hor_presenciales, pla_tip_id
 			from 	sep_plantilla pla, sep_plantilla_detalle pla_det
 			where 	pla.pla_id = pla_det.pla_id
-			and 	pla.prog_codigo = 922500';
-		$datosPlantilla = DB::select($sql);
-		$pla_fic_id = 1037;
+			and 	pla.prog_codigo = 228123';
+		$datosPlantilla = DB::select($sql);*/
+		
+		/*$pla_fic_id = 878;
 		if(count($datosPlantilla) > 0){
 			foreach($datosPlantilla as $val){
 				$fase = $val->fas_id;

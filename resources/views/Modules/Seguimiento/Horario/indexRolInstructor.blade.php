@@ -174,7 +174,7 @@
                                                             @if($cc == $hor->pla_ins_lider)
 															    <a style="cursor:pointer;font-size:14px;" name="pla_fic_id" data-programa="{{ ucwords(mb_strtolower($hor->prog_nombre)) }}" data-ficha="{{ $hor->fic_numero }}" data-trimestre="{{ $l }}" data-fec-fin="{{ $programacion[$hor->pla_fic_id][$l]['fechas_fin'][$key10] }}" data-fec-inicio="{{ $val10 }}" data-pla-fic-id="{{ $hor->pla_fic_id }}" value="{{ $hor->pla_fic_id }}" class="modificarActividades">Actividades</a>
 														    @endif
-														        <a style="cursor:pointer;font-size:14px;" id="aprendices" data-url="{{url('seguimiento/horario/listadoaprendices')}}" data-ficha="{{ $hor->fic_numero }}">Listado de aprendices</a>
+														        <a style="cursor:pointer;font-size:14px;" id="aprendices" data-url="{{url('seguimiento/horario/listadoaprendices')}}" data-ficha="{{ $hor->fic_numero }}" data-programa="{{ ucwords(mb_strtolower($hor->prog_nombre)) }}">Listado de aprendices</a>
 														</div>
 														<!---->
 													</div>
@@ -371,7 +371,9 @@
 				<div class="text-center">
 					<button type="button" class="close" data-dismiss="modal" style="margin:8px 14px 0px 0px;">&times;</button>
 					<div class="alert alert-success" style="background-color:#087b76;margin:0px;color:white;border:black;border-radius:0px;">
-						<strong class="modal-title" style="font-size:15px;">LISTADO DE APRENDICES: </strong><small id="fecFin"  style="font-size:16px;"></small><br>
+						<strong class="modal-title" style="font-size:15px;">Listado de aprendices</strong><small id="fecFin"  style="font-size:16px;"></small><br>
+						<strong class="modal-title title-ficha" style="font-size:15px;"></strong><small id="fecFin"  style="font-size:16px;"></small><br>
+						<strong class="modal-title title-programa" style="font-size:15px;"></strong><small id="fecFin"  style="font-size:16px;"></small><br>
 					</div>
 				</div>
 				<div class="modal-body">
@@ -389,6 +391,7 @@
 					</table>
 				</div>
 				<div class="modal-footer">
+				     <a style="margin:0px;" class="btn btn-info btn-xs btn-listado">Descargar</a>
 					<button style="margin:0px;" class="btn btn-danger btn-xs" data-dismiss="modal">Cerrar</button>
 				</div>
 			</div>
@@ -415,16 +418,20 @@
 				}
 			});
 			$(document).on('click','#aprendices', function(){
-               $("#listado").modal();
+              $("#listado").modal();
 			   var url = $(this).attr("data-url");
 			   var ficha = $(this).attr("data-ficha");
-			   $("#listado_ficha").html("");
+			   var programa = $(this).attr("data-programa");
+			   $(".title-ficha").text("Ficha: "+ficha);
+			   $(".title-programa").text("Programa: "+programa);
 				$.ajax({
 					url:url,
 					type:"GET",
 					data:"ficha="+ficha,
 					success:function (data) {
 						$("#listado_ficha").html(data);
+						var url = "exportaraprendices?ficha="+ficha+"";
+						$(".btn-listado").attr("href",url);
 					}
 				});
 			});

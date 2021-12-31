@@ -28,30 +28,58 @@
 								<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center" style="margin-top: 5px;">
 									<div class="row">
 										<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-											<div class="col-lg-4 col-lg-push-4 col-md-6 col-md-push-3 col-sm-12 col-xs-12">
-												<label>Trimestre: </label><br>
-												<small>A&ntilde;o - N&uacute;mero trimestre - Fecha inicio - Fecha fin</small>
-												<select class="form-control" name="pla_fec_tri_id" required id="pla_fec_tri_id">
-													<option value = "">Seleccione...</option>
-													@if(isset($pla_fec_tri_id))
-														<option id="todosLosTrimestres" <?php echo $pla_fec_tri_id =='todos' ? 'selected' :  '' ?> value = "todos">Todos los trimestres</option>
-														@foreach($trimestres as $val)
-															<?php $selected = ''; ?>
-															@if($pla_fec_tri_id == $val->pla_fec_tri_id)
-															<?php $selected = 'selected'; ?>
-															@endif
-															<option <?php echo $selected; ?> value="{{ $val->pla_fec_tri_id }}">{{ $val->pla_fec_tri_year }} - {{ $val->pla_fec_tri_trimestre }} - {{ $val->pla_fec_tri_fec_inicio }} - {{ $val->pla_fec_tri_fec_fin }}</option>
-														@endforeach
-													@else
-													<option id="todosLosTrimestres" value = "todos">Todos los trimestres</option>
-														@foreach($trimestres as $val)
-															@if($val->pla_fec_tri_year > '2018' and $val->pla_fec_tri_year < '2023')
-															<option value="{{ $val->pla_fec_tri_id }}">{{ $val->pla_fec_tri_year }} - {{ $val->pla_fec_tri_trimestre }} - {{ $val->pla_fec_tri_fec_inicio }} - {{ $val->pla_fec_tri_fec_fin }}</option>
-															@endif
-														@endforeach
-													@endif
-												</select>
-											</div>
+                                            <div class="col-lg-4 col-lg-push-4 col-md-6 col-md-push-3 col-sm-12 col-xs-12">
+    											<center><label>Trimestre Acad&eacute;mico: </label><center>
+    											<div class="row">
+    												<div class="col-md-4">
+    											    	<small>A&ntilde;o</small>
+    													<select name="year" id="years" class="form-control" onchange="filterList(document.getElementById('years').value)" required>
+    														@foreach($anioslis as $val)
+    															<?php $selecione = ""; ?>
+    															@if(isset($year) && $val == $year)
+    																<?php $selecione = "selected"; ?>
+    														    @else
+    															    @if(!isset($year) && $val == date('Y')+1)
+    																<?php $selecione = "selected"; ?>
+                                                                    @endif
+    															@endif
+    															<option value="{{$val}}" {{$selecione}}>{{$val}}</option>
+    														@endforeach
+    													</select>
+    												</div>
+    												<div class="col-md-8">
+    													<small>Trimestre - Inicio - Fin</small>
+    													<select class="form-control trimestres" name="pla_fec_tri_id" required>
+    														<option value = "">Seleccione...</option>
+    														@if(isset($pla_fec_tri_id))
+    															<option id="todosLosTrimestres" <?php echo $pla_fec_tri_id =="todos" ? "selected" :  "" ?> value = "todos">Todos los trimestres</option>
+    															@foreach($trimestres as $val)
+    																<?php 
+    																$selecione = "";
+    																$contenido = "";
+    																?>
+    																@if($pla_fec_tri_id == $val->pla_fec_tri_id)
+    																	<?php $selecione = "selected"; ?>
+    																@endif
+    																@if(isset($year) && $val->pla_fec_tri_year != $year)
+    																  <?php $contenido ="display:none"; ?>
+    																@else
+    																  @if(!isset($year) && $val->pla_fec_tri_year != date('Y'))
+    																  	<?php $contenido ="display:none"; ?>
+    																  @endif
+    																@endif
+    																<option <?php echo $selecione; ?> value="{{ $val->pla_fec_tri_id }}" style="{{$contenido}}">{{ $val->pla_fec_tri_trimestre }} - {{ $val->pla_fec_tri_fec_inicio }} - {{ $val->pla_fec_tri_fec_fin }}</option>
+    															@endforeach
+    														@else
+    													        <option id="todosLosTrimestres" value = "todos">Todos los trimestres</option>
+    															@foreach($trimestres as $val)
+    																<option value="{{ $val->pla_fec_tri_id }}" style="display:none;">{{ $val->pla_fec_tri_trimestre }} - {{ $val->pla_fec_tri_fec_inicio }} - {{ $val->pla_fec_tri_fec_fin }}</option>
+    															@endforeach
+    														@endif
+    													</select>
+    												</div>
+    											</div>
+									    	</div>
 										</div>
 										
 										@if($rol == 5 or $rol == 3 or $rol == 0 or $rol == 8 or $rol == 10 or $rol == 19 or $rol == 16)
@@ -317,7 +345,7 @@
 																    <a style="cursor:pointer;font-size:14px;" name="pla_fic_id" data-programa="{{ ucwords(mb_strtolower($hor->prog_nombre)) }}" data-ficha="{{ $hor->fic_numero }}" data-trimestre="{{ $l }}" data-fec-fin="{{ $programacion[$hor->pla_fic_id][$l]['fechas_fin'][$key10] }}" data-fec-inicio="{{ $programacion[$hor->pla_fic_id][$l]['fechas_inicio'][$key10] }}" data-pla-fic-id="{{ $hor->pla_fic_id }}" value="{{ $hor->pla_fic_id }}" class="agregar">Agregar</a> &nbsp;&nbsp; 
 																    <a style="cursor:pointer;font-size:14px;" name="pla_fic_id" data-programa="{{ ucwords(mb_strtolower($hor->prog_nombre)) }}" data-ficha="{{ $hor->fic_numero }}" data-trimestre="{{ $l }}" data-fec-fin="{{ $programacion[$hor->pla_fic_id][$l]['fechas_fin'][$key10] }}" data-fec-inicio="{{ $programacion[$hor->pla_fic_id][$l]['fechas_inicio'][$key10] }}" data-pla-fic-id="{{ $hor->pla_fic_id }}" value="{{ $hor->pla_fic_id }}" class="modificarActividades">Actividades</a>&nbsp;&nbsp;
                                                                 @endif
-                                                                <a style="cursor:pointer;font-size:14px;" id="aprendices" data-url="{{url('seguimiento/horario/listadoaprendices')}}" data-ficha="{{ $hor->fic_numero }}">Listado de aprendices</a>
+                                                                <a style="cursor:pointer;font-size:14px;" id="aprendices" data-url="{{url('seguimiento/horario/listadoaprendices')}}" data-ficha="{{ $hor->fic_numero }}" data-programa="{{ ucwords(mb_strtolower($hor->prog_nombre)) }}">Listado de aprendices</a>
 															</div>
 														</div>
 														@if(($rol == 5 or $rol == 0 or $rol==8) and $cc != '31378440')
@@ -962,7 +990,9 @@
 				<div class="text-center">
 					<button type="button" class="close" data-dismiss="modal" style="margin:8px 14px 0px 0px;">&times;</button>
 					<div class="alert alert-success" style="background-color:#087b76;margin:0px;color:white;border:black;border-radius:0px;">
-						<strong class="modal-title" style="font-size:15px;">LISTADO DE APRENDICES: </strong><small id="fecFin"  style="font-size:16px;"></small><br>
+                        <strong class="modal-title" style="font-size:15px;">Listado de aprendices</strong><small id="fecFin"  style="font-size:16px;"></small><br>
+						<strong class="modal-title title-ficha" style="font-size:15px;"></strong><small id="fecFin"  style="font-size:16px;"></small><br>
+						<strong class="modal-title title-programa" style="font-size:15px;"></strong><small id="fecFin"  style="font-size:16px;"></small><br>
 					</div>
 				</div>
 				<div class="modal-body">
@@ -980,6 +1010,7 @@
 					</table>
 				</div>
 				<div class="modal-footer">
+				    <a style="margin:0px;" class="btn btn-info btn-xs btn-listado">Descargar</a>
 					<button style="margin:0px;" class="btn btn-danger btn-xs" data-dismiss="modal">Cerrar</button>
 				</div>
 			</div>
@@ -1084,15 +1115,35 @@
                $("#listado").modal();
 			   var url = $(this).attr("data-url");
 			   var ficha = $(this).attr("data-ficha");
+			   var programa = $(this).attr("data-programa");
+			   $(".title-ficha").text("Ficha: "+ficha);
+			   $(".title-programa").text("Programa: "+programa);
 				$.ajax({
 					url:url,
 					type:"GET",
 					data:"ficha="+ficha,
 					success:function (data) {
 						$("#listado_ficha").html(data);
+						var url = "exportaraprendices?ficha="+ficha+"";
+						$(".btn-listado").attr("href",url);
 					}
 				});
 			});
 		});
+		function filterList(param) {
+			document.querySelectorAll(".trimestres").forEach(val => {
+				options = val.options;
+                for (let index = 0; index < options.length; index++) {
+					ele = options[index].text;
+					valor = options[index].value;
+					if (!ele.toLowerCase().includes(param.toLowerCase()) &&  valor!="" && valor!="todos") {
+						options[index].style.display="none";
+					}else{
+						options[0].selected = true;
+						options[index].style.display="block";
+					}
+				}
+			});
+		}
 	</script>
 @endsection

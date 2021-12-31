@@ -704,6 +704,7 @@ class HorarioController extends Controller {
 			select 	fecha_inicio, fecha_fin, trimestre_numero
 			from 	sep_planeacion_ficha_trimestre
 			where 	pla_fic_id = '.$pla_fic_id;
+			
 		$ficha = DB::select($sql);
 
 		$fechaActual = date('Y-m-d');
@@ -711,7 +712,7 @@ class HorarioController extends Controller {
 		$trimestre_ficha = array();
 		foreach($ficha as $fic){
 			if($fechaActual < $fic->fecha_inicio){
-				break;
+				//break;
 			}
 			$trimestre_ficha['fecha_inicio'][] = $fic->fecha_inicio;
 			$trimestre_ficha['fecha_fin'][] = $fic->fecha_fin;
@@ -3646,11 +3647,14 @@ class HorarioController extends Controller {
 		$diaOrtografia = array('Lunes','Martes','Miércoles','Jueves','Viernes','Sábado');
 		$faseOrtografia = array(1 =>'Análisis','Planeación','Ejecución','Evaluación');
 		
+		//arreglo de años permitidos para buscar
+		$anioslis=["".($anio_actual - 1)."","$anio_actual","".($anio_actual + 1).""];
+		
 		if(isset($generar)){
 			return view("Modules.Seguimiento.Horario.indexPDF",compact('par_identificacion_coordinador','coordinadores','rol','programacionDetalle','tipos','ambientes','instructores',"horarios_detalle","pla_fic_id","pla_fec_tri_id","trimestre","trimestres","fichas","arrayErrores","diaOrtografia", "horarios", "programacion", "faseOrtografia"));
 		}else{
 			if($rol == 0 or $rol == 3 or $rol == 5 or $rol == 8 or $rol == 10 or $rol == 16 or $rol == 19){
-				return view("Modules.Seguimiento.Horario.index",compact('franjasArray', 'actividades_programadas', 'instructores_transversal','cc','tipo_oferta','par_identificacion_coordinador','coordinadores','rol','programacionDetalle','tipos','ambientes','instructores',"horarios_detalle","pla_fic_id","pla_fec_tri_id","trimestre","trimestres","fichas","arrayErrores","diaOrtografia", "horarios", "programacion", "faseOrtografia","modalidad"));
+				return view("Modules.Seguimiento.Horario.index",compact('year','anioslis','franjasArray', 'actividades_programadas', 'instructores_transversal','cc','tipo_oferta','par_identificacion_coordinador','coordinadores','rol','programacionDetalle','tipos','ambientes','instructores',"horarios_detalle","pla_fic_id","pla_fec_tri_id","trimestre","trimestres","fichas","arrayErrores","diaOrtografia", "horarios", "programacion", "faseOrtografia","modalidad"));
 			}else{
 				return view("Modules.Seguimiento.Horario.indexRolInstructor",compact('cc','tipo_oferta','par_identificacion_coordinador','coordinadores','rol','programacionDetalle','tipos','ambientes','instructores',"horarios_detalle","pla_fic_id","pla_fec_tri_id","trimestre","trimestres","fichas","arrayErrores","diaOrtografia", "horarios", "programacion", "faseOrtografia","modalidad"));
 			}
@@ -4307,7 +4311,7 @@ class HorarioController extends Controller {
 		$anios = '"'.($anio_actual - 1).'", "'.$anio_actual.'","'.($anio_actual + 1).'","'.($anio_actual + 2).'"';
 		//arreglo de años permitidos para buscar
         $anioslis=["".($anio_actual - 1)."","$anio_actual","".($anio_actual + 1).""];
-
+		
 		$sql = '
 			select 	pla_fec_tri_id, pla_fec_tri_year, pla_fec_tri_trimestre,
 					pla_fec_tri_fec_inicio, pla_fec_tri_fec_fin 
@@ -4322,12 +4326,12 @@ class HorarioController extends Controller {
 			and 	u.par_identificacion = p.par_identificacion and estado = "1"
 			order by par_nombres';
 		$instructores = DB::select($sql);
-
+		
 		$sql = '
 			select 	par_identificacion,par_nombres,par_apellidos
 			from 	sep_participante where rol_id = 3 order by par_nombres';
 		$coordinadores = DB::select($sql);
-
+		
 		if(isset($pla_fec_tri_id)){
 		    $concatenar_horarios = '';
 		    if(isset($par_identificacion)){
@@ -4419,8 +4423,7 @@ class HorarioController extends Controller {
 			    and 	fic.prog_codigo = pro.prog_codigo '.$concatenar_horarios.' '.$concatenar_horarios_detalle.'
 				order 	by par_nombres, pla_fic_det_fec_inicio, pla_dia_id, pla_fic_det_hor_inicio asc';
 			$horario = DB::select($sql);
-			//dd($sql);
-
+			
 			if(count($horario)>0){
 				$programacion = array();
 				$fechas_inicio_fin = array();
@@ -4829,6 +4832,10 @@ class HorarioController extends Controller {
 		$instructores = DB::select('select par_identificacion, concat(par_nombres," ",par_apellidos) as nombre from sep_participante where rol_id = 2 order by par_nombres');
 		
 		$anio_actual=date('Y');
+		
+		if(date('m') == 12){
+		   $anio_actual=date('Y')+1;
+		}
 		$sql = '
 			select 	*
 			from 	sep_planeacion_fecha_trimestre
@@ -5265,5 +5272,70 @@ class HorarioController extends Controller {
 			}
 		}
 		return $tbody;
+	}
+	
+	public function getExportaraprendices()
+	{
+		$ficha = $_GET['ficha'];
+
+		if (is_numeric($ficha)) {
+			$sql="select prog.prog_nombre , niv.niv_for_nombre
+			from sep_ficha fic , sep_programa prog , sep_nivel_formacion niv
+			where prog.prog_codigo = fic.prog_codigo and fic.fic_numero = $ficha and prog.niv_for_id = niv.niv_for_id";
+			$programa = DB::select($sql);
+
+			$sql="
+				select par.par_identificacion, par.par_nombres ,par.par_apellidos , par.par_correo , par.par_telefono
+				from sep_participante as par
+				left join sep_matricula mat on mat.par_identificacion = par.par_identificacion
+				where mat.fic_numero = $ficha and mat.est_id = 2";
+			$aprendices= DB::select($sql);
+			
+			$sql = "select par.par_nombres , par.par_apellidos , par.par_telefono, par.par_correo
+			        from sep_participante par, sep_ficha fic where par.par_identificacion = fic.par_identificacion and fic.fic_numero = ".$ficha;
+			$instructor =  DB::select($sql);
+			if(count($instructor)>0){
+			    $nombres = $instructor[0]->par_nombres." ".$instructor[0]->par_apellidos;
+			}else{
+			    $nombres = "No tiene instructor lider";
+			}
+			$filas="";
+			$c=1;
+			//Creamos las filas
+			foreach ($aprendices as $val){
+				$filas.="
+				<tr>
+				<td>".$c++."</td>
+				<td>".utf8_decode($val->par_identificacion)."</td>
+				<td>".utf8_decode($val->par_nombres)."</td>
+				<td>".utf8_decode($val->par_apellidos)."</td>
+				<td>".utf8_decode($val->par_correo)."</td>
+				<td>".utf8_decode($val->par_telefono)."</td>";
+			}
+			//Exportamos la tabla
+			$tabla = '
+			<style>
+			table, th, td {
+				border: 1px solid black;
+				border-collapse: collapse;
+				font-family:Arial;
+			}
+			#campos{ background:#5e83ba; color:white; }
+			</style>
+			<h2>LISTADO DE APRENDICES</h2>
+			<h3>Ficha: '.$ficha.'</h3>
+			<h3 style="text-transform: uppercase !important;">Nivel: '.utf8_decode($programa[0]->niv_for_nombre).'</h3>
+			<h3>Programa: '.utf8_decode($programa[0]->prog_nombre).'</h3>
+			<h3>Instructor lider: '.$nombres.'</h3>
+			<table cellspacing="0" cellpadding="0">
+			<tr id="campos"><th>C&oacute;digo</th><th>Documento</th><th>Nombres</th><th>Apellidos</th>
+			<th>Correo</th><th>Telefono</th>';
+			$tabla.=$filas."</table><h4>Power By Setalpro ".date('Y')."</h4>";
+		    header('Content-type: application/vnd.ms-excel; charset=utf-8');
+			header("Content-Disposition: attachment; filename=LISTADO_APRENDICES_".$ficha.".xls");
+			header("Pragma: no-cache");
+			header("Expires: 0");
+			echo $tabla;
+		}
 	}
 }

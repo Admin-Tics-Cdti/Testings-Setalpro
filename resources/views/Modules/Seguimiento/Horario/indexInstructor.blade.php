@@ -30,7 +30,7 @@
 										<div class="col-lg-4 col-lg-push-4 col-md-6 col-md-push-3 col-sm-12 col-xs-12">
 											<center><label>Trimestre Acad&eacute;mico: </label><center>
 											<div class="row">
-												<div class="col-md-4">
+												<div class="col-md-5">
 												<small>A&ntilde;o</small>
 													<select name="year" id="years" class="form-control" onchange="filterList(document.getElementById('years').value)" required>
 														@foreach($anioslis as $val)
@@ -46,12 +46,12 @@
 														@endforeach
 													</select>
 												</div>
-												<div class="col-md-8">
-													<small>Trimestre - Fecha inicio - Fecha fin</small>
+												<div class="col-md-7">
+													<small>Trimestre - Inicio - Fin</small>
 													<select class="form-control trimestres" name="pla_fec_tri_id" required>
 														<option value = "">Seleccione...</option>
-														<option <?php echo $pla_fec_tri_id =="todos" ? "selected" :  "" ?> value = "todos">Todos los trimestres</option>
 														@if(isset($pla_fec_tri_id))
+														<option <?php echo $pla_fec_tri_id =="todos" ? "selected" :  "" ?> value = "todos">Todos los trimestres</option>
 															@foreach($trimestres as $val)
 																<?php 
 																$selecione = "";
@@ -70,8 +70,13 @@
 																<option <?php echo $selecione; ?> value="{{ $val->pla_fec_tri_id }}" style="{{$contenido}}">{{ $val->pla_fec_tri_trimestre }} - {{ $val->pla_fec_tri_fec_inicio }} - {{ $val->pla_fec_tri_fec_fin }}</option>
 															@endforeach
 														@else
+														    <option value = "todos">Todos los trimestres</option>
 															@foreach($trimestres as $val)
-																<option value="{{ $val->pla_fec_tri_id }}" style="display:none;">{{ $val->pla_fec_tri_trimestre }} - {{ $val->pla_fec_tri_fec_inicio }} - {{ $val->pla_fec_tri_fec_fin }}</option>
+															    <?php $contenido = ""; ?>
+															      @if($val->pla_fec_tri_year != date('Y'))
+																  	<?php $contenido ="display:none"; ?>
+																  @endif
+																<option value="{{ $val->pla_fec_tri_id }}" style="{{$contenido}}">{{ $val->pla_fec_tri_trimestre }} - {{ $val->pla_fec_tri_fec_inicio }} - {{ $val->pla_fec_tri_fec_fin }}</option>
 															@endforeach
 														@endif
 													</select>

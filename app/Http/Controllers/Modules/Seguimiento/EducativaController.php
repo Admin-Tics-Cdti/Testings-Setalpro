@@ -911,7 +911,7 @@ class EducativaController extends Controller {
                     . "WHERE sep_edu_comite.edu_tipo_com_id=sep_edu_tipo_com.edu_tipo_com_id and edu_falta_id=$id ORDER BY edu_comite_id DESC";
             $comi = DB::select($sqlComite);
             return view("Modules.Seguimiento.Educativa.quejamodal", compact('rol','url','literales',"queja", "aprendicesQueja", "comi", "instructor", "estado", "beneficiario"));
-        }else{
+        } else {
             return view("Modules.Seguimiento.Educativa.quejamodal", compact('url','literales',"queja", "aprendicesQueja", "instructor", "estado","beneficiario"));
         }
     }
@@ -1422,7 +1422,7 @@ class EducativaController extends Controller {
             $programa = DB::select($sql);
 
             $datos_queja.="\n\n" . $fapr->par_nombres . " " . $fapr->par_apellidos . ", Identificado(a) con C.C.   " . $fapr->par_identificacion . "
-            De programa de formación " . $programa[0]->prog_nombre . ", con número de ficha " . $programa[0]->fic_numero . ".";
+De programa de formación " . $programa[0]->prog_nombre . ", con número de ficha " . $programa[0]->fic_numero . ".";
 
             $aprendices.="\n" . $fapr->par_nombres . " " . $fapr->par_apellidos;*/
         }
@@ -1597,11 +1597,11 @@ class EducativaController extends Controller {
         $fecha = date("d-F-Y");
         
         $meses_ES = array("Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre");
-        $meses_EN = array("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December");
-        
-        $fecha = str_replace($meses_EN, $meses_ES, $fecha);
-        
-        $fecha = str_replace("-", " de ", $fecha);
+  $meses_EN = array("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December");
+  
+  $fecha = str_replace($meses_EN, $meses_ES, $fecha);
+  
+  $fecha = str_replace("-", " de ", $fecha);
         
         $programa_formacion = ucfirst(strtolower($programa[0]->prog_nombre));
         $nivel_formacion = $programa[0]->niv_for_nombre;
@@ -1692,7 +1692,7 @@ class EducativaController extends Controller {
         }
     }
     
-    public function getDescargarword()
+public function getDescargarword()
     {
         $id=$_GET['id'];
         $puedeSeguir = false;

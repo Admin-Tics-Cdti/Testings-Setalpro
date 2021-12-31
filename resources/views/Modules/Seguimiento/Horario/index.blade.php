@@ -39,7 +39,7 @@
     															@if(isset($year) && $val == $year)
     																<?php $selecione = "selected"; ?>
     														    @else
-    															    @if(!isset($year) && $val == date('Y')+1)
+    															    @if(!isset($year) && $val == date('Y'))
     																<?php $selecione = "selected"; ?>
                                                                     @endif
     															@endif
@@ -58,7 +58,7 @@
     																$selecione = "";
     																$contenido = "";
     																?>
-    																@if($pla_fec_tri_id == $val->pla_fec_tri_id)
+    																@if($pla_fec_tri_id == $val->pla_fec_tri_id && isset($year))
     																	<?php $selecione = "selected"; ?>
     																@endif
     																@if(isset($year) && $val->pla_fec_tri_year != $year)

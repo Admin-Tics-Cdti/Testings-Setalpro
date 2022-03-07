@@ -84,40 +84,73 @@ class UsersController extends Controller {
      *
      * @return Response
      */
-    public function getIndex($id= false, $campo=false) {
-        $page = Input::get('page', 1);
-        $perPage = 100;
-        $offset = ($page * $perPage) - $perPage;
+    public function getIndex($valor=false, $filtro=false, $identificacion=true) {
+        extract($_GET);
+
+        $registroPorPagina = 10;
+        $limit = $registroPorPagina;
+        if(isset($pagina)){
+            $hubicacionPagina = $registroPorPagina*($pagina-1);
+            $limit = $hubicacionPagina.','.$registroPorPagina;
+        }else{
+            $pagina = 1;
+        }
         
-        if($id=="")
+        if($valor=="")
                 {
-                    $sql="SELECT * FROM users, sep_participante "
-                . "WHERE users.par_identificacion = sep_participante.par_identificacion ORDER BY sep_participante.par_nombres ASC";
+                $sql = " SELECT * FROM users, sep_participante, sep_roles"
+                . " WHERE sep_participante.rol_id = sep_roles.id_rol and users.par_identificacion = sep_participante.par_identificacion ORDER BY sep_participante.par_nombres limit ".$limit;
+
+                $sqlContador='
+                select count(par_nombres) as total
+                from sep_participante';    
                 }
+
             else{
-                $sql="SELECT * FROM users, sep_participante "
-                . "WHERE users.par_identificacion = sep_participante.par_identificacion AND $campo LIKE '%$id%' 
-                   AND NOT sep_participante.par_identificacion=0900700
-                   ORDER BY sep_participante.par_nombres ASC";
+                if($filtro == 1){
+                    $busqueda=" par_identificacion_actual like '%$valor%'";
+                }elseif($filtro == 2){
+                    $busqueda=" par_nombres like '%$valor%'";
+                }elseif($filtro == 3){
+                    $busqueda=" par_apellidos like '%$valor%'";
+                }elseif($filtro == 4){
+                    $busqueda=" rol_id = '$valor'";
+                }elseif($filtro == 5){
+                    $busqueda="CONCAT(par_nombres, ' ',par_apellidos) like '%$valor%'";
+                }
+                
+                $sql = "select * from users, sep_participante
+		        where users.par_identificacion=sep_participante.par_identificacion and (".$busqueda.")
+		        order by par_nombres asc
+		        limit ".$limit;
+
+                $sqlContador = "
+                select  count(par_nombres) as total 
+                from  sep_participante
+                where par_identificacion=par_identificacion and (".$busqueda.")";
+
             }
+
             //dd($sql);
             $users = DB::select($sql);
-       
-        
-        $users = new LengthAwarePaginator(
-                array_slice(
-                        $users, $offset, $perPage, true
-                ), count($users), $perPage, $page);
-        
-        $users->setPath("index");
-        
-        return view("Modules.Users.Users.index", compact("users","offset"));
+
+            $usersContador = DB::select($sqlContador);
+		    $contadorUsers = $usersContador[0]->total;
+		    $cantidadPaginas = ceil($contadorUsers/$registroPorPagina);
+		    $contador = (($pagina-1)*$registroPorPagina)+1;
+            
+            $rolesCreados = DB::select("select * from sep_roles order by nombre_rol asc");
+            $sql ="select * from sep_participante where par_identificacion = ".$identificacion;
+            $roles = DB::select($sql);
+    
+    
+        return view("Modules.Users.Users.index", compact("users", 'valor','filtro','contadorUsers','cantidadPaginas','contador','pagina','sql','rolesCreados','identificacion','roles'));
 
     }
     
-            public function postIndex(){
-            return $this->getIndex($_POST['cedula'],$_POST['campo']);
-        }
+    public function postIndex(){
+        return $this->getIndex($_POST['valor'],$_POST['filtro']);
+    }
 
     /**
      * Show the form for creating a new resource.

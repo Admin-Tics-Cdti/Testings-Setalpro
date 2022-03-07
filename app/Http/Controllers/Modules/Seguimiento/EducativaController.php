@@ -686,7 +686,7 @@ class EducativaController extends Controller {
         return view("Modules.Seguimiento.Educativa.gestionarqueja", compact("tipos", "offset", "estado"));
     }*/
 
-    function getProgramarcomite() {
+    function getProgramarcomite($valor=false, $edu_est_id=false) {
         extract($_GET);
         // Paginado
         $resgistroPorPagina = 20;
@@ -723,7 +723,26 @@ class EducativaController extends Controller {
                 $concatenarEstado = ' and falta.edu_est_id = "'.$edu_est_id.'" ';
             }
         }else{
-            $edu_est_id = '';
+
+            if($edu_est_id == 1){
+                $busqueda=" edu_est_id like '%PENDIENTE%'";
+            }elseif($edu_est_id == 2){
+                $busqueda=" edu_est_id like '%APROBADO%'";
+            }elseif($edu_est_id == 3){
+                $busqueda=" edu_est_id like '%RECHAZADO%'";
+            }elseif($edu_est_id == 4){
+                $busqueda=" edu_est_id like '%PROGRAMADO%'";
+            }elseif($edu_est_id == 5){
+                $busqueda=" edu_est_id like '%FINALIZADO%'";
+            }else { 
+            $busqueda=" edu_est_id like '%%'";
+            }
+
+            $sql = "select * from sep_edu_estado 
+                    where edu_est_id=edu_est_id and (".$busqueda.")
+                    order by edu_est_descripcion asc
+                    limit ".$limit;
+
         }
 
         $funcionario = \Auth::user()->participante->par_identificacion;
@@ -768,8 +787,7 @@ class EducativaController extends Controller {
         $cantidadPaginas = ceil($contadorFaltas/$resgistroPorPagina);
         $contador = (($pagina-1)*$resgistroPorPagina)+1;
 
-        return view('Modules.Seguimiento.Educativa.programarcomite', compact('mis_faltas','edu_est_id','par_identificacion_coordinador','coordinadores','dbEstados','instructores','estados','contadorFaltas', 'par_identificacion','faltasContador','faltas', 'contador', 'cantidadPaginas','contador','pagina'));
-        
+        return view('Modules.Seguimiento.Educativa.programarcomite', compact('valor','mis_faltas','edu_est_id','par_identificacion_coordinador','coordinadores','dbEstados','instructores','estados','contadorFaltas', 'par_identificacion','faltasContador','faltas', 'contador', 'cantidadPaginas','contador','pagina'));
 
         /*$apellidoInstructor = Input::get('apellidoInstructor', "");
         $estadoF = Input::get('filtro', "");
@@ -1639,7 +1657,7 @@ De programa de formación " . $programa[0]->prog_nombre . ", con número de fich
 		$eliminar="update sep_edu_falta set edu_est_id=6 where edu_falta_id='$codigo' ";
 		DB::update($eliminar);
 		
-		return redirect(url("seguimiento/educativa/programarcomite"));
+		return $this->getProgramarcomite($edu_est_id,$pagina,$par_identificacion_coordinador,$par_identificacion);
 	}
 	
 	/*******************CONSULTA QUEJA APRENDICES*********************/
@@ -1742,7 +1760,7 @@ public function getDescargarword()
             $fecha_generado=$this->calculoFecha(date('m'),2);
 
             if ($opt == 1) {
-
+                $name="Citacion";
                 $sql = '
                 select  edu_cap.cap_codigo, cap_descripcion, edu_lit.art_codigo, lit_descripcion, art_descripcion
                 from    sep_edu_falta edu_fal, sep_edu_falta_lit edu_fal_lit,
@@ -1785,6 +1803,7 @@ public function getDescargarword()
                 $ruta = "Citacion/CitacionComite";
                 $puedeSeguir = true;
             }else if($opt == 2){
+                $name="Notificacion Personal";
                 if (isset($_GET['res']) && isset($_GET['est']) && isset($_GET['fec_res'])) {
                     //encargada de generar el acta y el comite
                     $encargada = DB::select("SELECT * FROM sep_participante WHERE par_identificacion = " . $queja[0]->par_genera_comite);
@@ -1804,6 +1823,7 @@ public function getDescargarword()
                     $puedeSeguir = true;
                 }
             }else if($opt == 3){
+                $name="Notificacion de Aviso";
                 if (isset($_GET['res']) && isset($_GET['fec_res'])){
                     $fecha_resolucion=$this->calculoFecha($_GET['fec_res'],3);
                     $templateWord = new TemplateProcessor(getPathUploads() . '/plantillas/FormatoNotificacionAviso.docx');
@@ -1848,12 +1868,12 @@ public function getDescargarword()
                 }
 
                 //Generamos el archivo
-                $ruta = public_path() . '/Modules/Seguimiento/Educativa/'.$ruta.'_'.time().'.docx';
-                $templateWord->saveAs($ruta);
-                header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
-                header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
-                header("Cache-Control: post-check=0, pre-check=0", false);
-                return response()->download($ruta);
+                $templateFile=tempnam(sys_get_temp_dir(),'PHPword');
+                $templateWord->saveAs($templateFile);
+                $headers=[
+                    "Content-Type: application/octet-stream",
+                ];
+                return response()->download($templateFile,''.$name.'.docx',$headers)->deleteFileAfterSend(true);
             }
         }
     }

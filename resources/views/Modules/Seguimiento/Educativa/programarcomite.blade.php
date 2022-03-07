@@ -34,14 +34,14 @@
             <div class="box-content">
                 @if (isset($mensaje['exito']))
                 <div class="alert alert-success">
-                    <button data-dismiss="success" class="close" type="button">Ã—</button>
+                    <button data-dismiss="success" class="close" type="button">¡Á</button>
                     {{ $mensaje['exito'] }}
                 </div>
                 @endif
 
                 @if (isset($mensaje['errores']))
                 <div class="alert alert-danger">
-                    <button data-dismiss="alert" class="close" type="button">Ã—</button>
+                    <button data-dismiss="alert" class="close" type="button">¡Á</button>
 
                     <ul>
                         @foreach ($mensaje['errores'] as $key=>$msg)
@@ -84,7 +84,7 @@
                                     @if($par_identificacion == '')
                                         <input autocomplete="off" required style="border: 1px solid #ccc;padding: 2px 12px;width: 260px;" class="form-control" list="browsers" name="par_identificacion" placeholder="Escriba el documento o nombre...">
                                     @else
-                                        <input autocomplete="off" value="{{ $par_identificacion }}" required style="border: 1px solid #ccc;padding: 2px 12px;width: 260px;" class="form-control" list="browsers" name="par_identificacion" placeholder="Escriba programa o cÃ³digo...">
+                                        <input autocomplete="off" value="{{ $par_identificacion }}" required style="border: 1px solid #ccc;padding: 2px 12px;width: 260px;" class="form-control" list="browsers" name="par_identificacion" placeholder="Escriba programa o c¨®digo...">
                                         <?php $par_identificacion = '&par_identificacion='.$par_identificacion?>
                                     @endif
                                     <datalist id="browsers">
@@ -118,12 +118,12 @@
                                 </select>
                             </div>
                             <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
-                                <label>Estado</label>
-                                <select class="form-control filtro" name="edu_est_id">
+                            <label>Estado</label>
+                                <select class="form-control filtro" name="edu_est_id" id="edu_est_id" required >
                                     <option value=''>Todos...</option>
                                     @if($edu_est_id == '')
                                         @foreach($dbEstados as $val)
-                                            <option value="{{ $val->edu_est_id }}">{{ $val->edu_est_descripcion}}</option>
+                                            <option  value="{{ $val->edu_est_id }}">{{ $val->edu_est_descripcion}}</option>
                                         @endforeach
                                     @else
                                         @foreach($dbEstados as $val)
@@ -156,9 +156,9 @@
                                     <th style="padding:1px;font-size:12px;">Tipo</th>
                                     <th style="padding:1px;font-size:12px;">Estado</th>
                                     <th style="padding:1px;text-align:center;font-size:12px;">Ver</th>
-                                    <th style="padding:1px;text-align:center;font-size:12px;">Programar</th>
-                                    <th style="padding:1px;text-align:center;font-size:12px;">Ejecutar</th>
-                                    <th style="padding:1px;text-align:center;font-size:12px;">Acta</th>
+                                    <th style="padding:1px;text-align:center;font-size:12px;display:none;">Programar</th>
+                                    <th style="padding:1px;text-align:center;font-size:12px;display:none;">Ejecutar</th>
+                                    <th style="padding:1px;text-align:center;font-size:12px;display:none;">Acta</th>
                                     <th style="padding:1px;text-align:center;font-size:12px;">Rechazo</th>
                                     <th style="padding:1px;text-align:center;font-size:12px;">Eliminar</th>
                                 </tr>
@@ -176,21 +176,21 @@
                                         <td style="padding:1px;font-size:11.4px;"><a class="tag tag-{{ $estados[$fal->edu_est_descripcion] }}">{{ $fal->edu_est_descripcion }}<a></td>
                                         <td style="font-size:12px;padding:2px;text-align:center;"><a title="Modal" href="#" data-estado="{{ $fal->edu_est_descripcion }}" data-id="{{ $fal->edu_falta_id }}" data-url="{{url("seguimiento/educativa/verdetalle")}}" class='cargarAjax' data-toggle="modal" data-target="#modal">Ver</a></td>
                                         @if($fal->edu_est_descripcion == "APROBADO" || $fal->edu_est_descripcion == "PROGRAMADO")
-                                            <td style="padding:1px;text-align:center;"><a href="{{ url('seguimiento/educativa/comite/'.$fal->edu_falta_id) }}" class="ajax-link">Prog.</a></td>
+                                            <td style="padding:1px;text-align:center;display:none;"><a href="{{ url('seguimiento/educativa/comite/'.$fal->edu_falta_id) }}" class="ajax-link">Prog.</a></td>
                                         @else
-                                            <td style="padding:1px;text-align:center;"><code>N/A</code></td>
+                                            <td style="padding:1px;text-align:center;display:none;"><code>N/A</code></td>
                                         @endif
                                         @if($fal->edu_est_descripcion == "PROGRAMADO")
-                                            <td style="padding:1px;text-align:center;"><a href="{{ url('seguimiento/educativa/acta/'.$fal->edu_falta_id) }}" class="ajax-link">Ejec.</a></td>
+                                            <td style="padding:1px;text-align:center;display:none;"><a href="{{ url('seguimiento/educativa/acta/'.$fal->edu_falta_id) }}" class="ajax-link">Ejec.</a></td>
                                         @else
-                                            <td style="padding:1px;text-align:center;"><code>N/A</code></td>
+                                            <td style="padding:1px;text-align:center;display:none;"><code>N/A</code></td>
                                         @endif
 
                                         @if($fal->edu_est_descripcion == "FINALIZADO")
                                             <!---<td style="padding:1px;text-align:center;"><a href="{{ asset("Modules/Seguimiento/Educativa/Acta/ACTA-".$fal->edu_falta_id.".zip") }}" class="ajax-link">Act.</a></td>-->
-                                            <td style="padding:1px;text-align:center;"><code>N/A</code></td>
+                                            <td style="padding:1px;text-align:center;display:none;"><code>N/A</code></td>
                                         @else
-                                            <td style="padding:1px;text-align:center;"><code>N/A</code></td>
+                                            <td style="padding:1px;text-align:center;display:none;"><code>N/A</code></td>
                                         @endif
 
                                         @if($fal->edu_est_descripcion == "RECHAZADO")
@@ -199,7 +199,7 @@
                                             <td style="padding:1px;text-align:center;"><code>N/A</code></td>
                                         @endif
                                         <td style="padding:1px;text-align:center;">
-                                            <a data-url="{{ url('seguimiento/educativa/anularcomite') }}?codigo={{$fal->edu_falta_id}}" data-index="{{ url('seguimiento/educativa/programarcomite') }}" type="button"  id="eliminar" class="" style="cursor:pointer;">
+                                            <a data-url="{{ url('seguimiento/educativa/anularcomite') }}?codigo={{$fal->edu_falta_id}}&pagina=<?php echo $pagina; ?>&par_identificacion_coordinador=<?php echo $par_identificacion_coordinador; ?>&edu_est_id=<?php echo $edu_est_id; ?>&par_identificacion=<?php echo $par_identificacion; ?> " data-index="{{ url('seguimiento/educativa/programarcomite') }}" type="button"  id="eliminar" class="" style="cursor:pointer;">
                                             Elim.
                                             </a>
                                         </td>
@@ -225,7 +225,7 @@
                                         $style=";background:#087b76; color:white;";
                                     }
                                 ?>
-                                <a href="{{ url('seguimiento/educativa/programarcomite') }}?pagina=<?php echo $i.$par_identificacion; ?>&par_identificacion_coordinador=<?php echo $par_identificacion_coordinador; ?>"><button  style="float:right;border: 1px solid black;margin:0px 1px 0px 0px{{$style}}">{{ $i }}</button></a>
+                                <a href="{{ url('seguimiento/educativa/programarcomite') }}?pagina=<?php echo $i.$par_identificacion; ?>&par_identificacion_coordinador=<?php echo $par_identificacion_coordinador; ?>&edu_est_id=<?php echo $edu_est_id; ?>"><button  style="float:right;border: 1px solid black;margin:0px 1px 0px 0px{{$style}}">{{ $i }}</button></a>
                             @endfor
                         </div>
                     </div>
@@ -250,7 +250,7 @@
                                 }
                             ?>
                             @if($pagina < ($cantidadPaginas-1))
-                                <a href="{{ url('seguimiento/educativa/programarcomite') }}?pagina=<?php echo $cantidadPaginas.$par_identificacion; ?>&par_identificacion_coordinador=<?php echo $par_identificacion_coordinador; ?>"><button  style="float:right;border: 1px solid black;margin:0px 1px 0px 0px;{{ $style }}">{{ $cantidadPaginas }}</button></a>
+                                <a href="{{ url('seguimiento/educativa/programarcomite') }}?pagina=<?php echo $cantidadPaginas.$par_identificacion; ?>&par_identificacion_coordinador=<?php echo $par_identificacion_coordinador; ?>&edu_est_id=<?php echo $edu_est_id; ?>"><button  style="float:right;border: 1px solid black;margin:0px 1px 0px 0px;{{ $style }}">{{ $cantidadPaginas }}</button></a>
                                 <a href=""><button  style="float:right;border: 1px solid black;margin:0px 1px 0px 0px;">...</button></a>
                             @endif
                             @for($i=10; $i>0; $i--)
@@ -260,12 +260,16 @@
                                         $style=";background:#087b76; color:white;";
                                     }
                                 ?>
-                                <a href="{{ url('seguimiento/educativa/programarcomite') }}?pagina=<?php echo $cantidadInicia.$par_identificacion; ?>&par_identificacion_coordinador=<?php echo $par_identificacion_coordinador; ?>"><button  style="float:right;border: 1px solid black;margin:0px 1px 0px 0px{{$style}}">{{ $cantidadInicia }}</button></a>
+                                <a href="{{ url('seguimiento/educativa/programarcomite') }}?pagina=<?php echo $cantidadInicia.$par_identificacion; ?>&par_identificacion_coordinador=<?php echo $par_identificacion_coordinador; ?>&edu_est_id=<?php echo $edu_est_id; ?>"><button  style="float:right;border: 1px solid black;margin:0px 1px 0px 0px{{$style}}">{{ $cantidadInicia }}</button></a>
                                 <?php $cantidadInicia--; ?>
                             @endfor
                             @if($pagina >= 10)
                                 <a href=""><button  style="float:right;border: 1px solid black;margin:0px 1px 0px 0px;">...</button></a>
                                 <a href="{{ url('seguimiento/educativa/programarcomite') }}?pagina=1<?php echo $par_identificacion; ?>&par_identificacion_coordinador=<?php echo $par_identificacion_coordinador; ?>"><button  style="float:right;border: 1px solid black;margin:0px 1px 0px 0px;">1</button></a> 
+                            @endif
+                            @if($pagina >= 10)
+                                <a href=""><button  style="float:right;border: 1px solid black;margin:0px 1px 0px 0px;">...</button></a>
+                                <a href="{{ url('seguimiento/educativa/programarcomite') }}?pagina=1<?php echo $edu_est_id; ?>&edu_est_descripcion=<?php echo $par_identificacion_coordinador; ?>&edu_est_id=<?php echo $edu_est_id; ?>"><button  style="float:right;border: 1px solid black;margin:0px 1px 0px 0px;">1</button></a> 
                             @endif
                         </div>
                     </div>
@@ -324,6 +328,19 @@
             //alert('xd');
             $("#form-filtros").trigger("submit");
         });
+           //sostener el filtrado
+
+       var filtro = parseInt(<?php echo $edu_est_id; ?>);
+       
+       for (j = 0; j<=filtro; j++) {
+          if(j == filtro){
+           $("#filtro option[value="+ j +"]").attr("selected",true);
+          }
+       }
+       
+         $("#edu_est_id").attr("value", filtro);
+
+       // 
         
         $(document).on("change", ".notificacion", function() {
             var option = $(this).val();

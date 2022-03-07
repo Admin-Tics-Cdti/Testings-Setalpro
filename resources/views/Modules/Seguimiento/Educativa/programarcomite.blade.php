@@ -34,14 +34,14 @@
             <div class="box-content">
                 @if (isset($mensaje['exito']))
                 <div class="alert alert-success">
-                    <button data-dismiss="success" class="close" type="button">¡Á</button>
+                    <button data-dismiss="success" class="close" type="button">ï¿½ï¿½</button>
                     {{ $mensaje['exito'] }}
                 </div>
                 @endif
 
                 @if (isset($mensaje['errores']))
                 <div class="alert alert-danger">
-                    <button data-dismiss="alert" class="close" type="button">¡Á</button>
+                    <button data-dismiss="alert" class="close" type="button">ï¿½ï¿½</button>
 
                     <ul>
                         @foreach ($mensaje['errores'] as $key=>$msg)
@@ -84,7 +84,7 @@
                                     @if($par_identificacion == '')
                                         <input autocomplete="off" required style="border: 1px solid #ccc;padding: 2px 12px;width: 260px;" class="form-control" list="browsers" name="par_identificacion" placeholder="Escriba el documento o nombre...">
                                     @else
-                                        <input autocomplete="off" value="{{ $par_identificacion }}" required style="border: 1px solid #ccc;padding: 2px 12px;width: 260px;" class="form-control" list="browsers" name="par_identificacion" placeholder="Escriba programa o c¨®digo...">
+                                        <input autocomplete="off" value="{{ $par_identificacion }}" required style="border: 1px solid #ccc;padding: 2px 12px;width: 260px;" class="form-control" list="browsers" name="par_identificacion" placeholder="Escriba programa o cï¿½ï¿½digo...">
                                         <?php $par_identificacion = '&par_identificacion='.$par_identificacion?>
                                     @endif
                                     <datalist id="browsers">

@@ -158,6 +158,12 @@
 					<div class="row" id="url" data-url="{{ url('seguimiento/horario/actividadesinstructor') }}">
 						<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 							@if(isset($programacion) and count($programacion)>0)
+							<div style="position:fixed; z-index:10;right: 16px;">
+									<a class="btn btn-success" href="exportaractinstructor?instructor={{ $par_identificacion_coordinador !='' ?$par_identificacion_coordinador: $instructor }}&year={{ isset($year) ? $year :'' }}&exportar=si">Actividades <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download" viewBox="0 0 16 16">
+									<path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+									<path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+									</svg></a>
+								</div>
 							    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
 									<?php
 										$host= $_SERVER["HTTP_HOST"];
@@ -167,7 +173,9 @@
 									<a title="Exportar a PDF" target="_blank" href="<?php echo $url; ?>"><img style="cursor:pointer;" src="{{ asset('img/horario/PDF2.png') }}"></a>
 								</div>
 								@foreach($programacion as $key => $val)
+								 <?php $contador=0; ?>
 									@foreach($val as $key1 => $val1)
+									   <?php $contador++; ?>
 										<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
 											<h5 style="margin: 0px;text-align:center;font-weight: bold;"> {{ $val1["instructor"] }}</h5>
 											<h6 style="margin: 2px 0px 2px 0px;text-align:center;">
@@ -180,6 +188,9 @@
 													$estilos = -4;
 												}
 											?>
+											@if($contador == 1)
+												<center><a style="font-size:14px;cursor:pointer;" id='abrir_tri' data-id="{{ $key }}" data-nombre="{{ $val1['instructor'] }}" data-year="{{$year}}" data-url="{{url('seguimiento/horario/actividadesinst')}}">Actividades</a> &nbsp;</center>
+                                    		@endif
 											<h6 style="margin: 0px 0px {{ $estilos }}px 0px;color:red;"><strong>Horas programadas:</strong><?php echo (isset($val1['horas_programadas'])) ? $val1['horas_programadas'] : 0; ?></h6>
 										</div>
 										@if($rol == 0 or $rol == 5)
@@ -272,7 +283,55 @@
 			</div>
 		</div>
 	</div>
-	<!-- Modal -->
+	
+	<!-- Modal actividades generales del instructor-->
+	<div id="modaltri" class="modal fade" role="dialog">
+		<div class="modal-dialog" style="width:76%">															
+			<!-- Modal content-->
+			<div class="modal-content">
+				<div class="text-center">
+					<button type="button" class="close" data-dismiss="modal" style="margin:8px 14px 0px 0px;">&times;</button>	
+					<div class="alert alert-success" style="background-color:#087b76;margin:0px;color:white;border:black;border-radius:0px;">
+						<div id="header-info">
+						<strong class="modal-title" style="font-size:15px;">ACTIVIDADES</strong><br>
+                            <strong class="modal-title" style="font-size:15px;">Instructor: </strong><small id="instructor" style="font-size:16px;"></small><br>
+							<strong class="modal-title" style="font-size:15px;">CC: </strong><small id="cc" style="font-size:16px;"></small>						
+						</div>
+					</div>
+				</div>
+				<div class="borrar modal-body">
+					<div id="fechastrimestres" class="col-md-3 text-center" style="margin-bottom:15px;left:38%;"></div>
+					<table class="table table-bordered table-hover">
+						<thead>
+							<tr>
+							    <th style="text-align:center;">Ficha</th>
+							    <th style="text-align:center;">Programa</th>
+							    <th style="text-align:center;">Trimestre</th>
+								<th style="text-align:center;">Fase</th>
+								<th style="text-align:center;">Competencia</th>
+								<th style="text-align:center;">Resultado</th>
+								<th style="text-align:center;">Actividad</th>
+								<th style="text-align:center;">Horas</th>
+								<th style="text-align:center;">Fecha Inicio</th>
+								<th style="text-align:center;">Fecha Fin</th>
+
+							</tr>
+						</thead>
+						<tbody id="contenido">
+						</tbody>
+					</table>
+					<div id="botones"></div>
+				</div>
+				<div class="modal-footer">
+					<a style="margin:0px;" class="btn btn-info btn-xs" id="descargar">Descargar</a>
+					<button style="margin:0px;" class="btn btn-danger btn-xs" data-dismiss="modal">Cerrar</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	
+	<!-- Modal actividades individuales del instructor-->
 	<div id="myModal" class="modal fade" role="dialog">
 		<div class="modal-dialog" style="width:76%">															
 			<!-- Modal content-->
@@ -446,3 +505,74 @@
 		}
 	</script>
 @endsection
+@section('plugins-js')
+<script type="text/javascript">
+	//modal
+    $(document).ready(function () {
+        $(document).on('click','#abrir_tri', function(){
+            $("#modaltri").modal();
+			$("#contenido").html('');
+			$("#botones").html('');
+            var url = $(this).attr("data-url");
+            var data_id = $(this).attr("data-id");
+            var data_year = $(this).attr("data-year");
+			var data_nombre = $(this).attr("data-nombre");
+			var ruta = "exportaractinstructor?instructor="+data_id+"&year="+data_year;
+            $("#descargar").attr("href",ruta); 
+			$("#cc").html(data_id);
+			$("#instructor").html(data_nombre);
+            $.ajax({
+                url:url,
+                type:"GET",
+                data:"instructor="+data_id+"&year="+data_year,
+				success:function (html){
+					$("#fechastrimestres").html(html[0]);
+					$("#contenido").html(html[1]);
+					$("#botones").html(html[2]);
+				}
+            });
+        });
+
+        $(document).on("change","#fechastri", function(){
+			var url = $("#abrir_tri").attr("data-url");
+            var data_id = $(this).attr("data-id");
+		    var data_year = $("#abrir_tri").attr("data-year");
+			var data_tri = $(this).val();
+			$("#contenido").html('');
+			$("#botones").html('');
+			$.ajax({
+                url:url,
+                type:"GET",
+                data:"instructor="+data_id+"&year="+data_year+"&trimestre="+data_tri,
+				success:function (html){
+					$("#fechastrimestres").html(html[0]);
+					$("#contenido").html(html[1]);
+					$("#botones").html(html[2]);
+				}
+            });
+		});
+
+		$(document).on("click", ".pagina2", function(){
+			var url = $(this).attr("data-url2");
+			var data_pagina = $(this).attr("data-pagina2");
+			var data_year = $("#abrir_tri").attr("data-year");
+			var data_id = $("#fechastri").attr("data-id");
+			var data_tri = $("#fechastri").val();
+			$("#contenido").html('');
+			$("#botones").html('');	
+					
+			 $.ajax({
+				url:url,
+				type:"GET",
+				data:"pagina="+data_pagina+"&year="+data_year+"&instructor="+data_id+"&trimestre="+data_tri, 
+				success: function (data) {
+					$("#fechastrimestres").html(data[0]);
+					$("#contenido").html(data[1]);
+					$("#botones").html(data[2]);
+				}
+			}); 
+		});
+    });
+
+    </script>
+    @endsection

@@ -156,9 +156,9 @@
                                     <th style="padding:1px;font-size:12px;">Tipo</th>
                                     <th style="padding:1px;font-size:12px;">Estado</th>
                                     <th style="padding:1px;text-align:center;font-size:12px;">Ver</th>
-                                    <th style="padding:1px;text-align:center;font-size:12px;">Programar</th>
-                                    <th style="padding:1px;text-align:center;font-size:12px;">Ejecutar</th>
-                                    <th style="padding:1px;text-align:center;font-size:12px;">Acta</th>
+                                    <th style="padding:1px;text-align:center;font-size:12px;display:none;">Programar</th>
+                                    <th style="padding:1px;text-align:center;font-size:12px;display:none;">Ejecutar</th>
+                                    <th style="padding:1px;text-align:center;font-size:12px;display:none;">Acta</th>
                                     <th style="padding:1px;text-align:center;font-size:12px;">Rechazo</th>
                                     <th style="padding:1px;text-align:center;font-size:12px;">Eliminar</th>
                                 </tr>
@@ -176,21 +176,21 @@
                                         <td style="padding:1px;font-size:11.4px;"><a class="tag tag-{{ $estados[$fal->edu_est_descripcion] }}">{{ $fal->edu_est_descripcion }}<a></td>
                                         <td style="font-size:12px;padding:2px;text-align:center;"><a title="Modal" href="#" data-estado="{{ $fal->edu_est_descripcion }}" data-id="{{ $fal->edu_falta_id }}" data-url="{{url("seguimiento/educativa/verdetalle")}}" class='cargarAjax' data-toggle="modal" data-target="#modal">Ver</a></td>
                                         @if($fal->edu_est_descripcion == "APROBADO" || $fal->edu_est_descripcion == "PROGRAMADO")
-                                            <td style="padding:1px;text-align:center;"><a href="{{ url('seguimiento/educativa/comite/'.$fal->edu_falta_id) }}" class="ajax-link">Prog.</a></td>
+                                            <td style="padding:1px;text-align:center;display:none;"><a href="{{ url('seguimiento/educativa/comite/'.$fal->edu_falta_id) }}" class="ajax-link">Prog.</a></td>
                                         @else
-                                            <td style="padding:1px;text-align:center;"><code>N/A</code></td>
+                                            <td style="padding:1px;text-align:center;display:none;"><code>N/A</code></td>
                                         @endif
                                         @if($fal->edu_est_descripcion == "PROGRAMADO")
-                                            <td style="padding:1px;text-align:center;"><a href="{{ url('seguimiento/educativa/acta/'.$fal->edu_falta_id) }}" class="ajax-link">Ejec.</a></td>
+                                            <td style="padding:1px;text-align:center;display:none;"><a href="{{ url('seguimiento/educativa/acta/'.$fal->edu_falta_id) }}" class="ajax-link">Ejec.</a></td>
                                         @else
-                                            <td style="padding:1px;text-align:center;"><code>N/A</code></td>
+                                            <td style="padding:1px;text-align:center;display:none;"><code>N/A</code></td>
                                         @endif
 
                                         @if($fal->edu_est_descripcion == "FINALIZADO")
                                             <!---<td style="padding:1px;text-align:center;"><a href="{{ asset("Modules/Seguimiento/Educativa/Acta/ACTA-".$fal->edu_falta_id.".zip") }}" class="ajax-link">Act.</a></td>-->
-                                            <td style="padding:1px;text-align:center;"><code>N/A</code></td>
+                                            <td style="padding:1px;text-align:center;display:none;"><code>N/A</code></td>
                                         @else
-                                            <td style="padding:1px;text-align:center;"><code>N/A</code></td>
+                                            <td style="padding:1px;text-align:center;display:none;"><code>N/A</code></td>
                                         @endif
 
                                         @if($fal->edu_est_descripcion == "RECHAZADO")

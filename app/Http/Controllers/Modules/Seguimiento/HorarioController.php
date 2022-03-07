@@ -3457,16 +3457,18 @@ class HorarioController extends Controller {
 
 			// Horario
 			$sql = '
-				select 	pla_fic_id, p_f.fic_numero, pla_tip_ofe_descripcion, pla_fec_tri_fin, if(fic.fic_modalidad = 1,"Presencial","Virtual") as Modalidad,
+				select  pla_fic_id, p_f.fic_numero, pla_tip_ofe_descripcion, pla_fec_tri_fin, if(fic.fic_modalidad = 1,"Presencial","Virtual") as Modalidad,
 						pla_fic_can_trimestre, pla_ins_lider, pla_fic_fec_creacion,
 						pla_fic_fec_ini_induccion, pla_fic_fec_fin_induccion,
 						pla_fic_fec_ini_lectiva, pla_fic_fec_fin_lectiva, pla_fic_can_trimestre_productiva,
+						IF(fic.par_identificacion_vocero IS NULL,"Sin asignar",(select concat(par_nombres," ",par_apellidos) 
+						from sep_participante where par_identificacion = fic.par_identificacion_vocero)) as vocero,
 						pla_fra_descripcion, p_fra.pla_fra_id, '.$concatenarGenerar.'
 						substring_index(par.par_nombres," ",1) as par_nombres, p_t_o.pla_tip_ofe_id,
 						substring_index(par.par_apellidos," ",1) as par_apellidos, niv.niv_for_id,
 						substring_index(niv_for_nombre," ",1) as niv_for_nombre, pla_fic_consecutivo_ficha
 				from 	sep_planeacion_ficha p_f, sep_planeacion_tipo_oferta p_t_o, sep_participante par,
-						sep_planeacion_franja p_fra, sep_programa pro, sep_ficha fic, sep_nivel_formacion niv
+						sep_planeacion_franja p_fra, sep_programa pro, sep_ficha fic, sep_nivel_formacion niv				
 				where 	p_f.pla_tip_ofe_id = p_t_o.pla_tip_ofe_id
 				and  	p_f.pla_fra_id = p_fra.pla_fra_id
 				and 	p_f.fic_numero = fic.fic_numero '.$campo.'
@@ -3650,13 +3652,28 @@ class HorarioController extends Controller {
 		//arreglo de años permitidos para buscar
 		$anioslis=["".($anio_actual - 1)."","$anio_actual","".($anio_actual + 1).""];
 		
+		//Definimos las variables necesarias
+		if(isset($horarios)){
+		$consulta='';
+		$cont=array();			
+		$c = 0;
+			foreach($horarios as $hor){
+				$sql = "select act.pla_fic_act_competencia from sep_planeacion_ficha_actividades act where act.pla_fic_id = ".$hor->pla_fic_id;								
+				$consulta = DB::select($sql);				
+				if (count($consulta) == 0) {
+					$cont[$c] = $hor->fic_numero;						
+					$c++;
+				}		
+			}
+		}		
+		
 		if(isset($generar)){
 			return view("Modules.Seguimiento.Horario.indexPDF",compact('par_identificacion_coordinador','coordinadores','rol','programacionDetalle','tipos','ambientes','instructores',"horarios_detalle","pla_fic_id","pla_fec_tri_id","trimestre","trimestres","fichas","arrayErrores","diaOrtografia", "horarios", "programacion", "faseOrtografia"));
 		}else{
 			if($rol == 0 or $rol == 3 or $rol == 5 or $rol == 8 or $rol == 10 or $rol == 16 or $rol == 19){
-				return view("Modules.Seguimiento.Horario.index",compact('year','anioslis','franjasArray', 'actividades_programadas', 'instructores_transversal','cc','tipo_oferta','par_identificacion_coordinador','coordinadores','rol','programacionDetalle','tipos','ambientes','instructores',"horarios_detalle","pla_fic_id","pla_fec_tri_id","trimestre","trimestres","fichas","arrayErrores","diaOrtografia", "horarios", "programacion", "faseOrtografia","modalidad"));
+				return view("Modules.Seguimiento.Horario.index",compact('year','anioslis','franjasArray', 'actividades_programadas', 'instructores_transversal','cc','tipo_oferta','par_identificacion_coordinador','coordinadores','rol','programacionDetalle','tipos','ambientes','instructores',"horarios_detalle","pla_fic_id","pla_fec_tri_id","trimestre","trimestres","fichas","arrayErrores","diaOrtografia", "horarios", "programacion", "faseOrtografia","modalidad","cont"));
 			}else{
-				return view("Modules.Seguimiento.Horario.indexRolInstructor",compact('cc','tipo_oferta','par_identificacion_coordinador','coordinadores','rol','programacionDetalle','tipos','ambientes','instructores',"horarios_detalle","pla_fic_id","pla_fec_tri_id","trimestre","trimestres","fichas","arrayErrores","diaOrtografia", "horarios", "programacion", "faseOrtografia","modalidad"));
+				return view("Modules.Seguimiento.Horario.indexRolInstructor",compact('cc','tipo_oferta','par_identificacion_coordinador','actividades_programadas','coordinadores','rol','programacionDetalle','tipos','ambientes','instructores',"horarios_detalle","pla_fic_id","pla_fec_tri_id","trimestre","trimestres","fichas","arrayErrores","diaOrtografia", "horarios", "programacion", "faseOrtografia","modalidad"));
 			}
 		}
 	}
@@ -4527,8 +4544,17 @@ class HorarioController extends Controller {
         $rol = \Auth::user()->participante->rol_id;
         $horasReales=0;
         $fechas_trimestre=0;
+        $instructor = "";
+		if (isset($par_identificacion)) {
+			foreach ($par_identificacion as $val) {
+				$instructor .= ",".$val;
+			}
+		}
+		if (!isset($par_identificacion_coordinador)) {
+		    $par_identificacion_coordinador = '';
+		}
 		if(!isset($generar)){
-			return view('Modules.Seguimiento.Horario.indexInstructor',compact('anioslis','year','par_identificacion_coordinador', 'coordinadores','rol','horasReales','fechas_trimestre','programacion','diaOrtografia','par_identificacion','pla_fec_tri_id','instructores','trimestres'));
+			return view('Modules.Seguimiento.Horario.indexInstructor',compact('instructor','anioslis','year','par_identificacion_coordinador', 'coordinadores','rol','horasReales','fechas_trimestre','programacion','diaOrtografia','par_identificacion','pla_fec_tri_id','instructores','trimestres'));
 		}else{
 			return view('Modules.Seguimiento.Horario.indexInstructorPDF',compact('par_identificacion_coordinador', 'coordinadores','rol','horasReales','fechas_trimestre','programacion','diaOrtografia','par_identificacion','pla_fec_tri_id','instructores','trimestres'));
 		}
@@ -5253,25 +5279,60 @@ class HorarioController extends Controller {
 	
 	//listado de aprendices por ficha
 	public function getListadoaprendices()
-	{
+	{		
+		$identificacion = \Auth::user()->participante->par_identificacion;
+		$rol = \Auth::user()->participante->rol_id;
 		$ficha=$_GET['ficha'];
 		$tbody="";
 		if (is_numeric($ficha)) {
+			/* cambiar esto */
 			$sql="
-				select par.par_identificacion, par.par_nombres ,par.par_apellidos , par.par_correo , par.par_telefono
+				select fic.par_identificacion_vocero , pla_fic.pla_ins_lider as instructor, par.par_identificacion, par.par_nombres ,par.par_apellidos , par.par_correo , par.par_telefono
 				from sep_participante as par
 				left join sep_matricula mat on mat.par_identificacion = par.par_identificacion
+				left join sep_ficha fic on mat.fic_numero = fic.fic_numero
+				left join sep_planeacion_ficha pla_fic on mat.fic_numero = pla_fic.fic_numero
 				where mat.fic_numero = $ficha and mat.est_id = 2";
 			$aprendices= DB::select($sql);
 			foreach ($aprendices as $val) {
+				$par_identificacion_vocero = $val->par_identificacion_vocero;
 				$tbody.="<tr><td>".$val->par_identificacion."</td>";
 				$tbody.="<td>".$val->par_nombres."</td>";
 				$tbody.="<td>".$val->par_apellidos."</td>";
 				$tbody.="<td>".$val->par_correo."</td>";
-				$tbody.="<td>".$val->par_telefono."</td></tr>";
+				$tbody.="<td>".$val->par_telefono."</td>";
+				/* agregamos validacion del rol y identificacion */
+				if($rol == 2 && $identificacion == $val->instructor){
+					if($val->par_identificacion == $par_identificacion_vocero){
+						$tbody.="<td style='text-align:center;'><input name='vocero' value='$val->par_identificacion' id'vocero' type='radio' checked></td></tr>";
+					}
+					else{
+						$tbody.="<td style='text-align:center;'><input name='vocero' value='$val->par_identificacion' id'vocero' type='radio'></td></tr>";
+					}
+				}else{
+					if($val->par_identificacion == $par_identificacion_vocero){
+						$tbody.="<td style='text-align:center;'> Vocero del grupo </td></tr>";
+					}
+					else{
+						$tbody.="<td style='text-align:center;'></td></tr>";
+					}
+				}
 			}
 		}
 		return $tbody;
+	}
+	public function postVocero(){
+		extract($_POST);
+		$sql = "select * from sep_ficha where fic_numero = ".$ficha;
+		$fic= DB::select($sql);
+		foreach($fic as $fic){
+			$ficvocero = $fic->par_identificacion_vocero;
+		}
+		if (isset($ficha) and isset($id)) {
+			
+				$sql="update sep_ficha set par_identificacion_vocero = ".$id." where fic_numero = '".$ficha."'";		
+				$vocero= DB::update($sql);
+		} 			
 	}
 	
 	public function getExportaraprendices()
@@ -5292,7 +5353,7 @@ class HorarioController extends Controller {
 			$aprendices= DB::select($sql);
 			
 			$sql = "select par.par_nombres , par.par_apellidos , par.par_telefono, par.par_correo
-			        from sep_participante par, sep_ficha fic where par.par_identificacion = fic.par_identificacion and fic.fic_numero = ".$ficha;
+			        from sep_participante par, sep_planeacion_ficha pla_fic where pla_fic.pla_ins_lider = par.par_identificacion and pla_fic.fic_numero = ".$ficha;
 			$instructor =  DB::select($sql);
 			if(count($instructor)>0){
 			    $nombres = $instructor[0]->par_nombres." ".$instructor[0]->par_apellidos;
@@ -5338,4 +5399,456 @@ class HorarioController extends Controller {
 			echo $tabla;
 		}
 	}
+	public function getDescargaractividad()
+	{
+		//Definimos las variables que vengan desde la vista por el metodo get de ajax
+		$ficha = $_GET['ficha'];
+		$pla_fic_id = $_GET['pla_fic_id'];
+		$programa = $_GET['programa'];
+		$fecha_ini = $_GET['fecha_ini'];
+		$fecha_fin = $_GET['fecha_fin'];
+		//Hacemos las consultas a la base de datos
+		$sql = "select pla_fic_can_trimestre_productiva, pla_fic_can_trimestre, pla_fic_fec_ini_induccion, fecha_fin_productiva from sep_planeacion_ficha where fic_numero = ".$ficha;
+		$inicio =  DB::select($sql); 
+		$sql = "select sep.fecha_fin, sep.pla_trimestre_numero, sep.fecha_inicio, sep.par_id_instructor, sep.fas_id, sep.pla_fic_act_competencia, sep.pla_fic_act_resultado, sep.pla_fic_act_actividad, sep.pla_fic_act_horas from sep_planeacion_ficha_actividades sep where sep.pla_fic_id = ".$pla_fic_id;
+		$actividades =  DB::select($sql); 
+		//Definimos nuestra tabla de la manera que se quiere ver en el excel
+			$filas="";
+			$c=1;			
+				foreach ($actividades as $val){
+				$instructor = utf8_decode($val->par_id_instructor);	
+				$fase = utf8_decode($val->fas_id);		
+				$filas.="
+				<tr>				
+				<td style='text-align: center;'>".$c++."</td>";
+				if ($fase == 5) {
+					$filas.="<td style='text-align: center;'>No tiene fase asignada</td>";
+				}
+				elseif($fase == 1){
+					$filas.="<td style='text-align: center;'>Analisis</td>";
+				}
+				elseif($fase == 2){
+					$filas.="<td style='text-align: center;'>Planeacion</td>";
+				}
+				elseif($fase == 3){
+					$filas.="<td style='text-align: center;'>Ejecucion</td>";
+				}
+				elseif($fase == 4){
+					$filas.="<td style='text-align: center;'>Evaluacion</td>";
+				}				
+				$filas.= 
+				"<td style='text-align: center;'>".utf8_decode($val->pla_fic_act_competencia)."</td>
+				<td style='text-align: center;'>".utf8_decode($val->pla_fic_act_resultado)."</td>
+				<td style='text-align: center;'>".utf8_decode($val->pla_fic_act_actividad)."</td>		
+				<td style='text-align: center;'>".utf8_decode($val->pla_fic_act_horas)."</td>";
+				if (isset($val->pla_trimestre_numero)) {
+					$filas.="<td style='text-align: center;'>".utf8_decode($val->pla_trimestre_numero)."</td>";	
+				}
+				else{
+					$filas.="<td style='text-align: center;'>No ha sido aginado el trimestre</td>";
+				}
+				if (isset($val->par_id_instructor)) {
+					$sql = "select par.par_nombres, par.par_apellidos from sep_participante par where par.par_identificacion = '".$instructor."'";
+					$name =  DB::select($sql);  
+					foreach($name as $val){
+						$nombre = utf8_decode($val->par_nombres);
+						$apellido = utf8_decode($val->par_apellidos);									
+							$filas.="<td style='text-align: center;'>".$nombre." ".$apellido."</td>";						
+					}	
+				}
+				else{
+					$filas.= "<td style='text-align: center;'>El instructor no ha sido asignado</td>";
+				}
+			}				
+			$tabla = '
+			<style>
+			table, th, td {
+				border: 1px solid black;
+				border-collapse: collapse;
+				font-family:Arial;
+			}
+			#campos{ background:#5e83ba; color:white; }
+			</style>
+			<h2>Actividades</h2>
+			<h3>Ficha: '.$ficha.'</h3>			
+			<h3>Trimestres lectiva: '.utf8_decode($inicio[0]->pla_fic_can_trimestre).'</h3>			
+			<h3>Trimestres productiva: '.utf8_decode($inicio[0]->pla_fic_can_trimestre_productiva).'</h3>			
+			<h3>Inicio: '.$fecha_ini.'</h3>			
+			<h3>Final: '.$fecha_fin.'</h3>			
+			<h3>Programa: '.utf8_decode($programa).'</h3>			
+			<table cellspacing="0" cellpadding="0">
+			<tr id="campos"><th>C&oacute;digo</th><th>Fase</th><th>Competencia</th><th>Resultado</th><th>Actividad</th>
+			<th>Horas</th><th>Trimestre</th><th>Instructor</th>';
+			$tabla.=$filas;
+		//Hacemos que se exporte en formato xls
+		header('Content-type: application/vnd.ms-excel');
+		header("Content-Disposition: attachment; filename=actividades".$ficha.".xls");
+		header("Pragma: no-cache");
+		header("Expires: 0");
+		echo $tabla;  
+	} 
+	public function getValidarficha()
+	{
+		//Definimos las variables que vengan desde la vista por el metodo get de ajax
+		$ficha = $_GET['ficha'];
+		//Ejecutamos la consulta a la base de datos
+		$sql = "select fic.prog_codigo, pro.prog_nombre from sep_ficha fic, sep_programa pro where fic.prog_codigo = pro.prog_codigo and fic.fic_numero = ".$ficha ;
+		$programa =  DB::select($sql); 
+		//Definimos las variables necesarias
+		$pro = utf8_decode($programa[0]->prog_codigo);
+
+		$sql = "select pla.prog_codigo from sep_programa pro, sep_plantilla pla where pla.prog_codigo = ".$pro ;
+		$plantilla =  DB::select($sql); 
+		$totalpla = count($plantilla);
+		$jsonData =	array();				
+		//Definimos los resultados de la consulta y el mensaje de la vista
+		if ($totalpla > 0) {
+			$jsonData['success'] = 1;
+			/* echo $jsonData['success'] = 115; */
+    		$jsonData['message'] = '<div id="contenidodiv" style="height: 50px ; width: 550px; text-align: center; margin: 0 auto;" class="alert alert-success"><p>Si existe la plantilla para la ficha '.$ficha.'<a class="alert-success" id="quitardiv" style="border-radius: 100px; margin-top: 0; margin-left: 10px;" >x</a></p></div>'; 
+		}
+		elseif($totalpla === 0){			
+			$jsonData['success'] = 0;
+			/* echo $jsonData['success'] = 0; */
+   			$jsonData['message'] = '<div id="contenidodiv" style="height: 50px ; width: 850px; text-align: center; margin: 0 auto;" class="alert alert-danger"><p>No existe la plantilla para la ficha '.$ficha.' y esto podria ocasionarle problemas para cargar las actividades <a class="alert-danger" id="quitardiv" style="border-radius: 100px; margin-top: 0; margin-left: 10px;">x</a></p></div>';  
+		} 
+		header('Content-type: application/json; charset=utf-8');
+		echo json_encode( $jsonData );
+		
+		
+	}
+	public function getValidarprograma()
+	{
+		//Definimos las variables que vengan desde la vista por el metodo get de ajax
+		$programa = $_GET['programa'];
+		//Ejecutamos la consulta a la base de datos
+		$sql = "select fic.prog_codigo, pro.prog_nombre from sep_ficha fic, sep_programa pro where fic.prog_codigo = pro.prog_codigo and pro.prog_codigo = ".$programa ;
+		$programa =  DB::select($sql); 
+		//Definimos las variables necesarias
+		$pro = utf8_decode($programa[0]->prog_codigo);
+
+		$sql = "select pla.prog_codigo from sep_programa pro, sep_plantilla pla where pla.prog_codigo = ".$pro ;
+		$plantilla =  DB::select($sql); 
+		$totalpla = count($plantilla);
+		$jsonData =	array();				
+		//Definimos los resultados de la consulta y el mensaje de la vista
+		if ($totalpla > 1) {
+			$jsonData['success'] = 1;
+    		$jsonData['message'] = '<div id="contenidodiv" style="height: 50px ; width: 550px; text-align: center; margin: 0 auto;" class="alert alert-success"><p>Si existe la plantilla para el programa '.$_GET['programa'].' <a class="alert-success" id="quitardiv" style="border-radius: 100px; margin-top: 0; margin-left: 10px;" >x</a></p></div>'; 
+		}
+		elseif($totalpla === 0){			
+			$jsonData['success'] = 0;
+   			$jsonData['message'] = '<div id="contenidodiv" style="height: 50px ; width: 850px; text-align: center; margin: 0 auto;" class="alert alert-danger"><p>No existe la plantilla para el programa '.$_GET['programa'].' y esto podria ocasionarle problemas para cargar las actividades <a class="alert-danger" id="quitardiv" style="border-radius: 100px; margin-top: 0; margin-left: 10px;">x</a></p></div>';  
+		} 
+		header('Content-type: application/json; charset=utf-8');
+		echo json_encode( $jsonData );
+		
+		
+	}
+	
+    public function getActividadesinst()
+	{
+		extract($_GET);
+        $registroPorPagina =  5;
+        //validamos si el cliente solicito cambiar de pagina
+        if(isset($pagina) && $pagina > 0){
+            $limit = $registroPorPagina*($pagina-1).','.$registroPorPagina;
+        }else{
+            $pagina = 1;
+            $limit = 5;
+		}
+
+		if (is_numeric($year) && is_numeric($instructor)) {
+			$concatenar="";
+			$sql = "
+			select pla_fec_tri_id, pla_fec_tri_fec_inicio as fecha_inicio, pla_fec_tri_fec_fin as fecha_fin, pla_fec_tri_trimestre as trimestre
+			from sep_planeacion_fecha_trimestre
+			where pla_fec_tri_year =".$year."";
+			$fechasins = DB::select($sql);
+			
+			$lista1 = "<label>Trimestre Acad&eacute;mico:</label><br>
+			<small>Trimestre - Fecha inicio - Fecha fin</small>
+			<select class='form-control' name='fechastri' id='fechastri' data-id='".$instructor."'>
+			<option value=''>Seleccione..</option>";
+
+            $fechas_trimestre = "";
+            $concatenar="";			
+			if (isset($trimestre) && $trimestre == 'complementario') {
+				$concatenar= " and pla_act.pla_fic_id = 1";
+			}
+			foreach ($fechasins as $val) {
+				$selected = "";
+				if (isset($trimestre) && $trimestre == $val->pla_fec_tri_id) {
+					$selected = "selected";
+					$fechas_trimestre = $val->fecha_inicio;
+				}
+				$lista1 = $lista1.
+				"<option value='".$val->pla_fec_tri_id."'".$selected.">".$val->trimestre." - ".$val->fecha_inicio." - ".$val->fecha_fin."</option><br>";	
+			}
+			if (!isset($trimestre)) {
+				$trimestre = "";
+			}
+			$lista1=$lista1."<option value='complementario'".($trimestre == 'complementario' ? 'selected':'').">Complementarios</option></select>";
+			if ($fechas_trimestre == "") {
+				$fechas_trimestre = $year;
+			}
+			
+			$sql = "
+			select pla_act.fas_id , pla_fic.pla_fic_id , fic.fic_numero , prog.prog_nombre , pla_act.pla_fic_act_competencia , pla_act.pla_fic_act_resultado , 
+			pla_act.pla_fic_act_actividad , pla_act.pla_fic_act_horas, pla_act.fecha_inicio , pla_act.fecha_fin,
+			IF(pla_act.pla_trimestre_numero IS NULL ,'Sin asignar',pla_act.pla_trimestre_numero) as trimestre1,
+			(select fecha_inicio from sep_planeacion_ficha_trimestre where pla_fic_id = pla_fic.pla_fic_id and fecha_inicio = pla_act.fecha_inicio) as inicio, 
+			(select fecha_fin from sep_planeacion_ficha_trimestre where pla_fic_id = pla_fic.pla_fic_id and fecha_inicio = pla_act.fecha_inicio) as fin,
+			(select trimestre_numero from sep_planeacion_ficha_trimestre where pla_fic_id = pla_fic.pla_fic_id and fecha_inicio = pla_act.fecha_inicio) as trimestre2
+			from sep_planeacion_ficha_actividades pla_act 
+			left join sep_planeacion_ficha pla_fic on pla_fic.pla_fic_id = pla_act.pla_fic_id 
+			left join sep_ficha fic on pla_fic.fic_numero = fic.fic_numero 
+			left join sep_programa prog on prog.prog_codigo = fic.prog_codigo 
+			where par_id_instructor = ".$instructor." and fecha_inicio like '%".$fechas_trimestre."%' ".$concatenar." limit ".$limit."";
+	
+            $actividades = DB::select($sql);
+			$faseOrtografia = array(1 =>'Análisis','Planeación','Ejecución','Evaluación');
+
+			$sqlContador = "
+			select pla_act.fas_id , pla_fic.pla_fic_id , fic.fic_numero , prog.prog_nombre , pla_act.pla_fic_act_competencia , pla_act.pla_fic_act_resultado , 
+			pla_act.pla_fic_act_actividad , pla_act.pla_fic_act_horas, pla_act.fecha_inicio , pla_act.fecha_fin,
+			IF(pla_act.pla_trimestre_numero IS NULL ,'Sin asignar',pla_act.pla_trimestre_numero) as trimestre1,
+			(select fecha_inicio from sep_planeacion_ficha_trimestre where pla_fic_id = pla_fic.pla_fic_id and fecha_inicio = pla_act.fecha_inicio) as inicio, 
+			(select fecha_fin from sep_planeacion_ficha_trimestre where pla_fic_id = pla_fic.pla_fic_id and fecha_inicio = pla_act.fecha_inicio) as fin,
+			(select trimestre_numero from sep_planeacion_ficha_trimestre where pla_fic_id = pla_fic.pla_fic_id and fecha_inicio = pla_act.fecha_inicio) as trimestre2
+			from sep_planeacion_ficha_actividades pla_act 
+			left join sep_planeacion_ficha pla_fic on pla_fic.pla_fic_id = pla_act.pla_fic_id 
+			left join sep_ficha fic on pla_fic.fic_numero = fic.fic_numero 
+			left join sep_programa prog on prog.prog_codigo = fic.prog_codigo 
+			where par_id_instructor = ".$instructor." and fecha_inicio like '%".$fechas_trimestre."%' ".$concatenar;
+            $actividadesContador = DB::select($sqlContador);
+
+			$lista2 = "";
+
+           foreach ($actividades as $val) {
+
+			    $fecha_inicio=$val->inicio;
+				$fecha_fin=$val->fin;
+				$trimestre=$val->trimestre2;
+
+				if ($val->pla_fic_id == 1) {
+					$fecha_inicio=$val->fecha_inicio;
+					$fecha_fin=$val->fecha_fin;
+					$trimestre=$val->trimestre1;
+				}
+
+				if (isset($faseOrtografia[$val->fas_id])) {
+					$fase = $faseOrtografia[$val->fas_id];
+				}else {
+					$fase = " - ";
+				}
+
+			   $lista2 = $lista2."<tr>".
+						"<td>".$val->fic_numero."</td>".
+						"<td>".$val->prog_nombre."</td>".
+						"<td>".$trimestre."</td>".
+						"<td>".$fase."</td>".
+						"<td>".$val->pla_fic_act_competencia."</td>".
+						"<td>".$val->pla_fic_act_resultado."</td>".
+						"<td>".$val->pla_fic_act_actividad."</td>".
+						"<td>".$val->pla_fic_act_horas."</td>".
+						"<td>".$fecha_inicio."</td>".
+						"<td>".$fecha_fin."</td>"."</tr>"; 
+		   }
+           
+           if ($lista2 == "") {
+			$lista2 = "<td style='padding: 20px; text-align: center; vertical-align: middle;' colspan='10'><p>El instructor no tiene actividades registradas</p></td>";
+		   }
+
+		   $contadorActividades = count($actividadesContador);
+		   $paginacion = "";
+		   $filtro = "";
+		   if ($contadorActividades > 0) {
+			   //Cantidad de acuerdo al total de resultados
+			   $cantidadPaginas = ceil($contadorActividades/$registroPorPagina);
+			   //Paginacion en html
+			   $paginacion = paginacion($registroPorPagina,$cantidadPaginas,$contadorActividades,$pagina ,$filtro);
+		   }
+
+		   $html[0] = $lista1;
+		   $html[1] = $lista2;
+		   $html[2] = $paginacion;
+		   return $html;
+		}
+		
+	}
+
+    public function Paginacion($datos){
+		$lista3 = "";
+		$contadorActividades = $datos[0];
+		$cantidadPaginas=$datos[1];
+		$actividadesContador=$datos[2];
+		$contador=$datos[3];
+		$pagina=$datos[4];
+
+		$inicioContador=$contador;
+
+		if($cantidadPaginas > 1){
+			if($cantidadPaginas <= 10){
+				$lista3.='<div class="row"><div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">';
+				if($cantidadPaginas > 1 ){
+					for($i=$cantidadPaginas; $i>0; $i--){ 
+						$style='';
+						if($i == $pagina){
+							$style=";background:#087b76; color:white;";
+						}
+						$lista3.=" <a  class='pagina2' data-url2='actividadesinst' data-pagina2='".$i."'>
+						  			   <button  style='float:right;border: 1px solid black;margin:0px 1px 0px 0px; ".$style."'> $i </button>
+						  		   </a>";
+					}
+					$lista3.= "</div></div>";
+				}else{
+					
+					$style='';
+					if($cantidadPaginas == $pagina){
+						$style=";background:#087b76; color:white;";
+					}
+					$cantidadInicia = 10;
+					if($pagina >= 10){
+						if($pagina == $cantidadPaginas){
+							$cantidadInicia = $pagina;
+						}else{
+							$cantidadInicia = ($pagina+1);
+						}
+						if($cantidadPaginas == $pagina){
+							   $lista3.="<a  class='pagina2' data-url2='actividadesinst' data-pagina2='".$cantidadInicia."'>
+							              <button  style='float:right;border: 1px solid black;margin:0px 1px 0px 0px;".$style."'> $i </button>
+							            </a>
+						                <a>
+										   <button  style='float:right;border: 1px solid black;margin:0px 1px 0px 0px;>...</button>
+										</a>";
+						   for($i=10; $i>0; $i--){
+							    $style='';
+							    if($cantidadInicia == $pagina){
+								   $style=";background:#087b76; color:white;";
+							    }
+								   $lista3.="<a  class='pagina2' data-url2='actividadesinst' data-pagina2='".$cantidadInicia."'> <button  style='float:right;border: 1px solid black;margin:0px 1px 0px 0px; ".$style."'> $cantidadInicia </button></a>";
+					                $cantidadInicia--;
+						    } 
+							    if($pagina < ($cantidadPaginas-1)){ 
+								   $lista3.="<a class='pagina2' data-url2='actividadesinst'  data-pagina2='".$cantidadInicia."'>
+								               <button  style='float:right;border: 1px solid black;margin:0px 5px 0px 0px; ".$style."'> $i </button>
+								            </a>
+								            <a>
+										       <button  style='float:right;border: 1px solid black;margin:0px 1px 0px 0px;'>...</button>
+										    </a>";
+							    }
+						}
+						
+					}
+				} 
+			}
+		}
+		return $lista3;
+	}
+	
+    public function getExportaractinstructor()
+	{
+		extract($_GET);
+		    $concatenar = "";
+			if (isset($exportar)) {
+				if(is_numeric($instructor)){
+					//Coordinador
+					$concatenar = " coor.par_identificacion_coordinador = ".$instructor;	
+				}else{
+					//instructor
+					$concatenar = " pla_act.par_id_instructor in(".substr($instructor,1).")";	
+				}
+			}else{
+                $concatenar = " pla_act.par_id_instructor = ".$instructor;
+			}
+			
+			$sql = "
+			select pla_act.fas_id , pla_fic.pla_fic_id , fic.fic_numero , prog.prog_nombre , pla_act.pla_fic_act_competencia , pla_act.pla_fic_act_resultado , 
+			concat(par.par_nombres,' ',par_apellidos) as nombre, par.par_identificacion,
+			pla_act.pla_fic_act_actividad , pla_act.pla_fic_act_horas, pla_act.fecha_inicio , pla_act.fecha_fin,
+			IF(pla_act.pla_trimestre_numero IS NULL ,'Sin asignar',pla_act.pla_trimestre_numero) as trimestre1,
+			(select fecha_inicio from sep_planeacion_ficha_trimestre where pla_fic_id = pla_fic.pla_fic_id and fecha_inicio = pla_act.fecha_inicio) as inicio, 
+			(select fecha_fin from sep_planeacion_ficha_trimestre where pla_fic_id = pla_fic.pla_fic_id and fecha_inicio = pla_act.fecha_inicio) as fin,
+			(select trimestre_numero from sep_planeacion_ficha_trimestre where pla_fic_id = pla_fic.pla_fic_id and fecha_inicio = pla_act.fecha_inicio) as trimestre2
+			from sep_planeacion_ficha_actividades pla_act 
+			left join sep_planeacion_ficha pla_fic on pla_fic.pla_fic_id = pla_act.pla_fic_id 
+			left join sep_ficha fic on pla_fic.fic_numero = fic.fic_numero 
+			left join sep_programa prog on prog.prog_codigo = fic.prog_codigo 
+			left join sep_participante par on pla_act.par_id_instructor =  par.par_identificacion
+			left join sep_instructor_coordinador coor on pla_act.par_id_instructor = coor.par_identificacion_instructor
+			where ".$concatenar." and pla_act.fecha_inicio like '%".$year."%' order by nombre asc";
+			$actividades = DB::select($sql);
+			$faseOrtografia = array(1 =>'Análisis','Planeación','Ejecución','Evaluación');
+			$lista2="";
+			foreach ($actividades as $val) {
+
+				$fecha_inicio=$val->inicio;
+				$fecha_fin=$val->fin;
+				$trimestre=$val->trimestre2;
+
+				if ($val->pla_fic_id == 1) {
+					$fecha_inicio=$val->fecha_inicio;
+					$fecha_fin=$val->fecha_fin;
+					$trimestre=$val->trimestre1;
+				}
+
+				if (isset($faseOrtografia[$val->fas_id])) {
+					$fase = $faseOrtografia[$val->fas_id];
+				}else {
+					$fase = " - ";
+				}
+
+			    $lista2 = $lista2."<tr>";
+				if (isset($exportar)) {
+					$lista2 .= "<td>".$val->par_identificacion."</td>".
+					"<td>".utf8_decode($val->nombre)."</td>";
+				}
+				$lista2.="<td>".$val->fic_numero."</td>".
+				"<td>".utf8_decode($val->prog_nombre)."</td>".
+				"<td>".$trimestre."</td>".
+				"<td>".utf8_decode($fase)."</td>".
+				"<td>".utf8_decode($val->pla_fic_act_competencia)."</td>".
+				"<td>".utf8_decode($val->pla_fic_act_resultado)."</td>".
+				"<td>".utf8_decode($val->pla_fic_act_actividad)."</td>".
+				"<td>".$val->pla_fic_act_horas."</td>".
+				"<td>".$fecha_inicio."</td>".
+				"<td>".$fecha_fin."</td>"."</tr>";
+		    }
+
+			$tabla = '
+			<style>
+			table, th, td {
+				border: 1px solid black;boder-collapse: callapse;
+				font-family:Arial;
+			}
+				#campos{ background:#5e83ba; color:white; }
+			</style>';
+			if (isset($exportar)) {
+				$tabla.= '<h2>ACTIVIDADES DE LOS INSTRUCTORES</h2><table cellspacing="0" cellpadding="0">'.
+				         '<tr id="campos"><th style="text-align:center;">Documento</th><th style="text-align:center;">Nombre completo</th>';
+			}else{
+				$tabla.='<h2>ACTIVIDADES DEL INSTRUCTOR '.strtoupper($actividades[0]->nombre).'</h2><table cellspacing="1" cellpadding="1"><tr id="campos">';
+			}
+			$tabla.='
+			<th style="text-align:center;">Ficha</th>
+			<th style="text-align:center;">Programa</th>
+			<th style="text-align:center;">Trimestre</th>
+			<th style="text-align:center;">Fase</th>
+			<th style="text-align:center;">Competencia</th>
+			<th style="text-align:center;">Resultado</th>
+			<th style="text-align:center;">Actividad</th>
+			<th style="text-align:center;">Horas</th>
+			<th style="text-align:center;">Fecha Inicio</th>
+			<th style="text-align:center;">Fecha Fin</th>
+			</tr>';
+			
+			$tabla = $tabla.$lista2;
+			header('Content-type: application/vnd.ms-excel; charset=utf-8');
+			header("Content-Disposition: attachment; filename=ACTIVIDADES_DEL_INSTRUCTOR.xls");
+			header("Pragma: no-cache");
+			header("Expires: 0");
+			echo $tabla;
+	}
+
 }

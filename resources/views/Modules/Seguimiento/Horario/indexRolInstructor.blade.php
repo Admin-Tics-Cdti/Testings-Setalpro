@@ -1,12 +1,12 @@
 @extends('templates.devoops')
 @section('content')
 	{!! getHeaderMod('Horarios','Ficha') !!}
-	<div class="row" id="urls" data-token="{{ csrf_token() }}" data-cambio-input = "{{ url('seguimiento/horario/modificarnumeroprograma') }}" data-cambio-select = "{{ url('seguimiento/horario/modificartipooferta') }}">
+	<div class="row" id="urls" data-token="{{ csrf_token() }}" data-cambio-input = "{{ url('seguimiento/horario/modificarnumeroprograma') }}" data-cambio-select = "{{ url('seguimiento/horario/modificartipooferta') }}" data-cambio-franja = "{{ url('seguimiento/horario/modificarfranja') }}">
 		<div class="col-xs-12 col-sm-12">
 			<div class="box ui-draggable ui-droppable">
 				<div class="box-header">
 					<div class="box-name ui-draggable-handle">
-						<span>Horarios por ficha</span>
+						<span>Horario - Ficha</span>
 					</div>
 					<div class="box-icons">
 						<a class="collapse-link">
@@ -27,7 +27,7 @@
 							<form method="GET">
 								<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center" style="margin-top: 5px;">
 									<div class="row">
-										<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+									<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 											<div class="col-lg-4 col-lg-push-4 col-md-6 col-md-push-3 col-sm-12 col-xs-12">
 												<label>Trimestre: </label><br>
 												<small>A&ntilde;o N&uacute;mero trimestre - Fecha inicio - Fecha fin</small>
@@ -74,10 +74,19 @@
 												</select>
 											</div>
 										</div>
-										<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" id="contenedor_seleccionar_ficha" style="margin-top:15px;">
-											<div style="font-size:12px;" class="col-lg-6 col-lg-push-3 col-md-8 col-md-push-2 col-sm-12 col-xs-12">
+										<?php
+											$style = '';
+											$required = '';
+											if(isset($par_identificacion_coordinador) and $par_identificacion_coordinador != ''){
+												$style = 'style="display:none;"';
+											}else{
+												$required = 'required';
+											}
+										?>
+										<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" id="contenedor_seleccionar_ficha" <?php echo $style; ?>>
+											<div style="font-size:12px;margin-top:10px;" class="col-lg-6 col-lg-push-3 col-md-8 col-md-push-2 col-sm-12 col-xs-12">
 												<label style="font-size:14px;">Seleccione ficha(s): </label><br>
-												<select class="js-example-basic-multiple" id="pla_fic_id" name="pla_fic_id[]" multiple="multiple" required>
+												<select class="js-example-basic-multiple" id="pla_fic_id" name="pla_fic_id[]" multiple="multiple" <?php echo $required; ?> >
 													@if(isset($pla_fic_id))
 														@foreach($fichas as $val)
 															<?php $selected = ''; ?>
@@ -108,95 +117,132 @@
 						</div>
 					</div>
 					<div class="row" id="url" data-url="{{ url('seguimiento/horario/actividadesinstructor') }}">
-						    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+						<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 							@if(isset($horarios))
 							<form action="{{ url('seguimiento/horario/mieliminarxd') }}" id="formulario" data-url-modificar-actividades="{{ url('seguimiento/horario/modificaractividades') }}" data-url-agregar="{{ url('seguimiento/horario/contenidomodalagregar') }}" data-url-modificar="{{ url('seguimiento/horario/contenidomodalmodificar') }}" method="POST">
 								<input name="_token" type="hidden" value="{{ csrf_token() }}">
-								@foreach($horarios as $hor)
-									@if(isset($programacion[$hor->pla_fic_id]))
-										<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
+									@foreach($horarios as $hor)
+										@if(isset($programacion[$hor->pla_fic_id]))
 											<?php
-												$host= $_SERVER["HTTP_HOST"];
-												$url= $_SERVER["REQUEST_URI"];
-												$url ="http://" . $host . $url.'&generar=PDF';
+											if($programacion[$hor->pla_fic_id] != ''){
 											?>
-											<a title="Exportar a PDF" target="_blank" href="<?php echo $url; ?>"><img style="cursor:pointer;" src="{{ asset('img/horario/PDF2.png') }}"></a>
-										</div>
-										<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center" >
-											<h5 style="margin:0px;">
-												<label>Ficha:</label> {{ $hor->fic_numero }}&nbsp;<b>{{ $hor->prog_sigla }}</b>&nbsp;&nbsp;
-												<label>Modalidad:</label> {{$hor->Modalidad}}&nbsp;&nbsp;
-												@if($hor->pla_fic_consecutivo_ficha == "")
-												    <b>Consecutivo:</b> 0
-												@else
-												    <b>Consecutivo:</b> {{ $hor->pla_fic_consecutivo_ficha }}
-												@endif
-											</h5>
-											<h6 style="margin:0px;">{{ $hor->niv_for_nombre }} en {{ ucwords(mb_strtolower($hor->prog_nombre)) }}</h6>
-											<h6 style="margin:0px;">
-												<label>Lectiva trimestre(s):</label> {{ $hor->pla_fic_can_trimestre }} &nbsp;&nbsp;&nbsp;
-												<label>Tipo oferta:</label> {{ $hor->pla_tip_ofe_descripcion }} &nbsp;&nbsp;&nbsp;
-												<label>Franja horaria:</label> {{ $hor->pla_fra_descripcion }}
-											</h6>
-											<h6 style="margin:0px">
-												<strong>Instructor l&iacute;der</strong>
-												@foreach($instructores as $ins)
+											<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
 												<?php
-													if($ins->par_identificacion == $hor->pla_ins_lider){ ?>
-														{{ $ins->par_nombres }} {{ $ins->par_apellidos }}
-												<?php	
-														break; 
-													}
+													$host= $_SERVER["HTTP_HOST"];
+													$url= $_SERVER["REQUEST_URI"];
+													$url ="http://" . $host . $url.'&generar=PDF';
 												?>
-												@endforeach
-											</h6>
-											<h6 style="margin:0px;">
-												<label>Creado por:</label> {{ ucwords(mb_strtolower($hor->par_nombres)) }} {{ ucwords(mb_strtolower($hor->par_apellidos)) }} &nbsp;&nbsp;
-												<label>Fecha creaci&oacute;n:</label> {{ $hor->pla_fic_fec_creacion }}
-											</h6>
-										</div>
-										<?php $cantidad_trimestres = $hor->pla_fic_can_trimestre; $cantidad_trimestres +=2;?>
-										@for($l=1; $l<=$cantidad_trimestres; $l++)
-											@if(isset($programacion[$hor->pla_fic_id][$l]))
-												@foreach($programacion[$hor->pla_fic_id][$l]["fechas_inicio"] as $key10 => $val10)
-													<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center" style="padding-bottom: 2px;">
-														<h5 style="margin:0px;">
-															<strong>Ficha</strong>: {{ $hor->fic_numero }}
-															<strong>Trimestre</strong> # {{ $l }}
-														</h5>
-														<h6 style="margin:0px;">
-															<strong>Fecha inicio:</strong> {{ $val10 }}
-															<strong>Fecha fin:</strong> {{ $programacion[$hor->pla_fic_id][$l]["fechas_fin"][$key10] }}
-														</h6>
-														
-														<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
+												<a title="Exportar a PDF" target="_blank" href="<?php echo $url; ?>"><img style="cursor:pointer;" src="{{ asset('img/horario/PDF2.png') }}"></a>
+											</div>
+											<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center" >
+												<h5 style="margin:5px;">
+													<label>Ficha:</label> {{ $hor->fic_numero }}&nbsp;<b>{{ $hor->prog_sigla }}</b>&nbsp;&nbsp;
+													<label>Modalidad:</label> {{$hor->Modalidad}}&nbsp;&nbsp;
+													@if($hor->pla_fic_consecutivo_ficha == "")
+														<b>Consecutivo:</b> 0
+													@else
+														<b>Consecutivo:</b> {{ $hor->pla_fic_consecutivo_ficha }}
+													@endif
+												</h5>
+												<h6 style="margin:5px;">{{ $hor->niv_for_nombre }} en {{ ucwords(mb_strtolower($hor->prog_nombre)) }}</h6>
+												<h6 style="margin:5px;">
+													<label>Lectiva trimestre(s):</label> {{ $hor->pla_fic_can_trimestre }} &nbsp;&nbsp;&nbsp;
+													<label>Tipo oferta:</label> {{ $hor->pla_tip_ofe_descripcion }} &nbsp;&nbsp;&nbsp;
+													<label>Franja horaria:</label> {{ $hor->pla_fra_descripcion }}
+												</h6>
+												<h6 style="margin:5px">
+													<strong>Instructor l&iacute;der</strong>
+													@foreach($instructores as $ins)
+													<?php
+														if($ins->par_identificacion == $hor->pla_ins_lider){ ?>
+															{{ $ins->par_nombres }} {{ $ins->par_apellidos }}
+													<?php	
+															break; 
+														}
+													?>
+													@endforeach
+												</h6>
+												<!-- Agregar esto -->
+												<h6 style="margin:5px">
+													<strong>Vocero: {{ $hor->vocero }}</strong>
+												</h6>
+												<h6 style="margin:2px;">
+													<label>Creado por:</label> {{ ucwords(mb_strtolower($hor->par_nombres)) }} {{ ucwords(mb_strtolower($hor->par_apellidos)) }} &nbsp;&nbsp;
+													<label>Fecha creaci&oacute;n:</label> {{ $hor->pla_fic_fec_creacion }}
+												</h6>
+											</div>
+											<?php
+											}else{
+											?>
+											<div style="margin:0px;" class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
+												<div  class="col-lg-6 col-lg-push-3 col-md-8 col-md-push-2 col-sm-12 col-xs-12 text-center">
+													<div style="border: 1px solid black;" class="alert alert-success">
+														<h5 style="margin:0px;" class="text-center">La ficha <strong>{{ $hor->fic_numero }}</strong> no ha iniciado o ya termino su etapa pr&aacute;ctica.</h5>
+													</div>
+												</div>
+											</div>
+											<?php
+											}
+											
+											if($hor->pla_fra_id == 1){
+												$ficha_franja_inicio = 6;
+												$ficha_franja_fin = 12;
+											}else if($hor->pla_fra_id == 2){
+												$ficha_franja_inicio = 12;
+												$ficha_franja_fin = 18;
+											}else if($hor->pla_fra_id == 3){
+												$ficha_franja_inicio = 18;
+												$ficha_franja_fin = 22;
+											}else if($hor->pla_fra_id == 4){
+												$ficha_franja_inicio = 6;
+												$ficha_franja_fin = 22;
+											}else{
+												$ficha_franja_inicio = 0;
+												$ficha_franja_fin = 0;
+											} 
+											
+											$cantidad_trimestres = $hor->pla_fic_can_trimestre; $cantidad_trimestres +=2;?>
+											
+											@for($l=1; $l<=$cantidad_trimestres; $l++)
+												@if(isset($programacion[$hor->pla_fic_id][$l]))
+													@foreach($programacion[$hor->pla_fic_id][$l]["fechas_inicio"] as $key10 => $val10)
+														<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center" style="padding-bottom: 2px;">
+															<h5 style="margin:1px;">
+																<strong>Ficha</strong>: {{ $hor->fic_numero }}
+																<strong>Trimestre</strong> # {{ $l }}
+																<strong>Etapa <?php echo $tipo_trimestre = $l <= $hor->pla_fic_can_trimestre ? 'lectiva' : 'productiva' ?></strong>
+															</h5>
+															<h6 style="margin:2px;">
+																<strong>Fecha inicio:</strong> {{ $programacion[$hor->pla_fic_id][$l]["fechas_inicio"][$key10] }} 
+																<strong>Fecha fin:</strong> {{ $programacion[$hor->pla_fic_id][$l]["fechas_fin"][$key10] }}
+															</h6>
+															<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center" style="margin:2px;">
 														    <!--Este es el boton "Actividades" que le hace aparecer a los instructores lider-->
                                                             @if($cc == $hor->pla_ins_lider)
 															    <a style="cursor:pointer;font-size:14px;" name="pla_fic_id" data-programa="{{ ucwords(mb_strtolower($hor->prog_nombre)) }}" data-ficha="{{ $hor->fic_numero }}" data-trimestre="{{ $l }}" data-fec-fin="{{ $programacion[$hor->pla_fic_id][$l]['fechas_fin'][$key10] }}" data-fec-inicio="{{ $val10 }}" data-pla-fic-id="{{ $hor->pla_fic_id }}" value="{{ $hor->pla_fic_id }}" class="modificarActividades">Actividades</a>
 														    @endif
-														        <a style="cursor:pointer;font-size:14px;" id="aprendices" data-url="{{url('seguimiento/horario/listadoaprendices')}}" data-ficha="{{ $hor->fic_numero }}" data-programa="{{ ucwords(mb_strtolower($hor->prog_nombre)) }}">Listado de aprendices</a>
+														    	<a style="cursor:pointer;font-size:14px;" id="aprendices" data-url="{{url('seguimiento/horario/listadoaprendices')}}" data-ficha="{{ $hor->fic_numero }}" data-programa="{{ ucwords(mb_strtolower($hor->prog_nombre)) }}">Listado de aprendices</a>
+															</div>
+															<!---->
 														</div>
-														<!---->
-													</div>
-													<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center" style="padding: 0px 75px;">
-														<table style="margin-bottom:15px;" data-plaFicId="{{ $hor->pla_fic_id }}" data-ficha="{{ $hor->fic_numero }}" data-url="{{ url('seguimiento/horario/contenidomodal') }}"  data-programa="{{ ucwords(mb_strtolower($hor->prog_nombre)) }}" data-trimestre="{{ $l }}" data-fec-fin="{{ $programacion[$hor->pla_fic_id][$l]['fechas_fin'][$key10] }}" data-fec-inicio="{{ $val10 }}" class="table table-bordered table-hover">
-															<thead>
-																<tr>
-																	<th style="width:78px;padding:2px;font-size:12px;text-align: center;">Hora</th>
-																	@for($i=0; $i<=5; $i++)
-																	<th style="min-width:90px;padding:2px;font-size:12px;text-align: center;">{{ $diaOrtografia[$i] }}</th>	
-																	@endfor
-																</tr>
-															</thead>
-															<tbody>
-																<?php
-																for($h=1; $h<7; $h++){
-																	$horas[$h]['can'] = 16;
-																	$horas[$h]['total'] = 16;
-																}
-																?>
-																<?php //echo '<pre>'; print_r($programacion[$hor->pla_fic_id][$l]);?> 
-																@if(isset($programacion[$hor->pla_fic_id][$l]['hora_inicio'][$key10]))
+														<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center" style="padding: 0px 75px;">
+															<table style="margin-bottom:15px;" data-plaFicId="{{ $hor->pla_fic_id }}" data-ficha="{{ $hor->fic_numero }}" data-url="{{ url('seguimiento/horario/contenidomodal') }}"  data-programa="{{ ucwords(mb_strtolower($hor->prog_nombre)) }}" data-trimestre="{{ $l }}" data-fec-fin="{{ $programacion[$hor->pla_fic_id][$l]['fechas_fin'][$key10] }}" data-fec-inicio="{{ $programacion[$hor->pla_fic_id][$l]['fechas_inicio'][$key10] }}" class="table table-bordered table-hover">
+																<thead>
+																	<tr>
+																		<th style="width:78px;padding:2px;font-size:12px;text-align: center;">Hora</th>
+																		@for($i=0; $i<=5; $i++)
+																		<th style="min-width:90px;padding:2px;font-size:12px;text-align: center;">{{ $diaOrtografia[$i] }}</th>
+																		@endfor
+																	</tr>
+																</thead>
+																<tbody>
+																	<?php
+																	for($h=1; $h<7; $h++){
+																		$horas[$h]['can'] = 16;
+																		$horas[$h]['total'] = 16;
+																	}
+																	if(isset($programacion[$hor->pla_fic_id][$l]['hora_inicio'][$key10])){
+																	?>
 																	@for($j=6; $j<22; $j++)
 																		<tr>
 																			<th style='padding:5px;font-size:11px;text-align:center;'> {{ $j.":00 - ".($j+1).":00" }} </th>
@@ -210,30 +256,40 @@
 																							$control = true;
 																							$instructor_cedula = $programacion[$hor->pla_fic_id][$l]["instructor_cedula"][$key10][$key1];
 																							$instructor_nombre = $programacion[$hor->pla_fic_id][$l]["instructor_nombre"][$key10][$key1];
+																							$nombre_largo = $programacion[$hor->pla_fic_id][$l]["nombre_largo"][$key10][$key1];
 																							$ambiente = $programacion[$hor->pla_fic_id][$l]["pla_amb_descripcion"][$key10][$key1];
 																							$rowspan = $programacion[$hor->pla_fic_id][$l]["horas_totales"][$key10][$key1];
-																							/*if(isset($actividades_programadas[$hor->pla_fic_id][$l][$instructor_cedula])){
-																								$mensaje = '<h6 style="margin:1px 0px 2px 0px;font-size:9px;">Ver actividades</h6>';
-																								$estilos_celda = 'background:#087b76';
+																							if(isset($actividades_programadas[$hor->pla_fic_id][$programacion[$hor->pla_fic_id][$l]["fechas_inicio"][$key10]][$instructor_cedula])){
 																								$actividad_clase = 'actividad';
+																								$mensaje = 'Ver actividad';
+																								$celda = 'background:#087b76';
 																							}else{
-																								$estilos_celda = 'background:red';
-																								$mensaje = '<h6 style="margin:1px 0px 2px 0px;font-size:9px;">Sin actividad</h6>';
 																								$actividad_clase = '';
-																							}*/
+																								$mensaje = 'Sin actividad';
+																								$celda = 'background:red';
+																							}
 																							break;
 																						}
 																						?>
 																					@endforeach
 
 																					@if($control)
-																						<td data-tipo="ficha" data-cc="{{ $instructor_cedula }}" data-instructor="{{ $instructor_nombre }}" rowspan="{{ $rowspan }}" class="actividad" style="padding: 0px;vertical-align: middle;cursor:pointer;">
+																						<td title="{{ $nombre_largo }} - {{ $mensaje }}" data-tipo="ficha" data-cc="{{ $instructor_cedula }}" data-instructor="{{ $instructor_nombre }}" rowspan="{{ $rowspan }}" class="{{ $actividad_clase }}" style="padding: 0px;vertical-align: middle;cursor:pointer;color:white;{{ $celda  }}"> 
 																							<h6 style="margin:2px 0px 1px 0px;font-size:10.5px;">{{ $instructor_nombre }}</h6>
 																							<h6 style="margin:0px;font-size:10.5px;font-weight: bold;">{{ $ambiente }}</h6>
+																							<h6 style="margin:1px 0px 2px 0px;font-size:9px;">{{ $mensaje }}</h6>
 																						</td>
 																						<?php	$horas[$i]['can'] -= $rowspan; ?>
 																					@else
-																						<td> </td>
+																					   <?php
+																							$estilos = '';
+																							$title = '';
+																							if($i != 6 and ($j >= $ficha_franja_inicio and $j < $ficha_franja_fin) and $tipo_trimestre == 'lectiva'){
+																								$estilos = 'background: #ec7114;cursor:pointer;';
+																								$title = 'Hora sin asignar';
+																							}
+																						?>
+																						<td title="{{ $title }}" style="{{ $estilos }}"> </td>
 																						<?php	$horas[$i]['can'] --; ?>
 																					@endif
 																				@endif
@@ -241,24 +297,35 @@
 																			@endfor
 																		</tr>
 																	@endfor
-																@else
+																	<?php
+																	}else{
+																	?>
+																	
 																	@for($j=6; $j<22; $j++)
 																		<tr>
 																			<th style='padding:5px;font-size:11px;text-align:center;'> {{ $j.":00 - ".($j+1).":00" }} </th>
 																			@for($i=1; $i<7; $i++)
-																				<td></td>
+																			    <?php
+																					$estilos = '';
+																					$title = '';
+																					if($i != 6 and ($j >= $ficha_franja_inicio and $j < $ficha_franja_fin) and $tipo_trimestre == 'lectiva'){
+																						$estilos = 'background: #ec7114;cursor:pointer;';
+																						$title = 'Hora sin asignar';
+																					}
+																				?>
+																				<td title="{{ $title }}" style="{{ $estilos }}" </td>
 																			@endfor
 																		</tr>
 																	@endfor
-																@endif
-															</tbody>
-														</table>
-													</div>
-												@endforeach
-											@endif
-										@endfor
-									@endif
-								@endforeach
+																	<?php } ?>
+																</tbody>
+															</table>
+														</div>
+													@endforeach
+												@endif
+											@endfor
+										@endif
+									@endforeach
 							</form>
 							@else
 								@if(isset($pla_fic_id))
@@ -385,21 +452,30 @@
 								<th style="text-align:center;">Apellidos</th>
 								<th style="text-align:center;">Correo</th>
 								<th style="text-align:center;">Telefono</th>
+								<th style="text-align:center;">Vocero</th>
 							</tr>
 						</thead>
 						<tbody id="listado_ficha"></tbody>
 					</table>
 				</div>
 				<div class="modal-footer">
-				     <a style="margin:0px;" class="btn btn-info btn-xs btn-listado">Descargar</a>
+					<!-- boton de agregar y el numero de la ficha -->
+					<input name="_token" type="hidden" id="_token" value="{{ csrf_token() }}">
+					<input name="ficha" type="hidden" id="fichavocero">
+					<a style="margin:0px;" id="cambios" data-url="vocero" class="btn btn-success btn-xs">Guardar cambios</a>
+					<!-- Hasta aqui  -->
+				    <a style="margin:0px;" class="btn btn-info btn-xs btn-listado">Descargar</a>
 					<button style="margin:0px;" class="btn btn-danger btn-xs" data-dismiss="modal">Cerrar</button>
+				</div>
+				<div style="margin-left:300px;width:1000px;border-radius:5px;border: 1px solid black;display:none;" id="alertvocero" class="alert alert-success">
+					<p style="margin:0px;" class="text-center tex-succes">Se ha guardado exitosamente el vocero de la ficha</p>
 				</div>
 			</div>
 		</div>
 	</div>
 @endsection
 @section('plugins-js')
-	<script type="text/javascript">
+<script type="text/javascript">
 		$(document).ready(function () {
 			$(document).on("change","#modalidad", function(){
 				var url = $(this).attr("data-url");
@@ -417,12 +493,27 @@
 					});
 				}
 			});
+			$("#cambios").click(function () {	 
+				var url = $(this).attr("data-url");
+				var ficha = $('#fichavocero').val();
+				var _token = $('#_token').val();
+				var idvocero = ($('input:radio[name=vocero]:checked').val());
+				$.ajax({
+					url:url,
+					type:"POST",
+					data: "id="+idvocero+"&ficha="+ficha+"&_token="+_token,
+					success:function (data) {
+						$("#alertvocero").show().fadeOut(5000);  
+					}
+				});
+			});
 			$(document).on('click','#aprendices', function(){
               $("#listado").modal();
 			   var url = $(this).attr("data-url");
 			   var ficha = $(this).attr("data-ficha");
 			   var programa = $(this).attr("data-programa");
 			   $(".title-ficha").text("Ficha: "+ficha);
+			   $("#fichavocero").val(ficha);
 			   $(".title-programa").text("Programa: "+programa);
 				$.ajax({
 					url:url,

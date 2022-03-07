@@ -29,7 +29,7 @@
 									<div class="row">
 										<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                             <div class="col-lg-4 col-lg-push-4 col-md-6 col-md-push-3 col-sm-12 col-xs-12">
-    											<center><label>Trimestre Acad&eacute;mico: </label><center>
+    											<center><label id="ini" style="scroll-margin-top:100px;">Trimestre Acad&eacute;mico: </label><center>
     											<div class="row">
     												<div class="col-md-4">
     											    	<small>A&ntilde;o</small>
@@ -175,6 +175,18 @@
 							</form>
 						</div>
 					</div>
+					@if(isset($cont[0]))
+						<div id="general" style="position: fixed; right:40px;background-color:rgb(255,79,41,0.8);color:white;z-index:10;border-radius:10px;text-align:left;padding:10px;">
+							<button id="boton" style="background-color:rgb(255,79,41,0.9);border-radius:13px;padding:3.5px;float:right;"><svg id="general" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrows-fullscreen" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M5.828 10.172a.5.5 0 0 0-.707 0l-4.096 4.096V11.5a.5.5 0 0 0-1 0v3.975a.5.5 0 0 0 .5.5H4.5a.5.5 0 0 0 0-1H1.732l4.096-4.096a.5.5 0 0 0 0-.707zm4.344 0a.5.5 0 0 1 .707 0l4.096 4.096V11.5a.5.5 0 1 1 1 0v3.975a.5.5 0 0 1-.5.5H11.5a.5.5 0 0 1 0-1h2.768l-4.096-4.096a.5.5 0 0 1 0-.707zm0-4.344a.5.5 0 0 0 .707 0l4.096-4.096V4.5a.5.5 0 1 0 1 0V.525a.5.5 0 0 0-.5-.5H11.5a.5.5 0 0 0 0 1h2.768l-4.096 4.096a.5.5 0 0 0 0 .707zm-4.344 0a.5.5 0 0 1-.707 0L1.025 1.732V4.5a.5.5 0 0 1-1 0V.525a.5.5 0 0 1 .5-.5H4.5a.5.5 0 0 1 0 1H1.732l4.096 4.096a.5.5 0 0 1 0 .707z"/></svg></button>
+							<div id="todo">
+								<h4>Fichas sin plan de trabajo</h4>
+								<li><a style="color:white;" href="#ini"> Limpiar filtro </a></li>
+									@for($i=0; $i < count($cont); $i++)																						
+										<li><a href="#{{$cont[$i]}}" style="color:white;"> {{$cont[$i]}} </a></li>
+									@endfor
+							</div>		
+						</div>
+					@endif
 					<div class="row" id="url" data-url="{{ url('seguimiento/horario/actividadesinstructor') }}">
 						<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 							@if(isset($horarios))
@@ -193,7 +205,7 @@
 												?>
 												<a title="Exportar a PDF" target="_blank" href="<?php echo $url; ?>"><img style="cursor:pointer;" src="{{ asset('img/horario/PDF2.png') }}"></a>
 											</div>
-											<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center" >
+											<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center" id="{{$hor->fic_numero}}" style="scroll-margin-top:100px;">
 												<h5 style="margin:0px;"><label>Ficha:</label> {{ $hor->fic_numero }} <label>&nbsp;Modalidad: {{$hor->Modalidad}} &nbsp;{{ $hor->prog_sigla }}</label>
 													@if(($rol == 5 or $rol == 0) and $cc != '31378440')
 													<input value="{{ $hor->pla_fic_consecutivo_ficha }}" class="valorCambioInput" style="width: 60px;border-radius: 4px;padding-left: 5px;border: 1px solid;font-size: 12px;" type="number">
@@ -238,7 +250,7 @@
 													 	{{ $hor->pla_fra_descripcion }}
 													@endif
 												</h6>
-												@if(($rol == 5 or $rol == 0) and $cc != '31378440')
+												@if(($rol == 5 or $rol == 0 or $rol == 3) and $cc != '31378440')
 													<h6 style="margin:0px;padding: 3px 0px 5px 0px;">
 														<strong>Instructor l&iacute;der</strong>
 														<?php
@@ -273,6 +285,9 @@
 														</select>
 													</h6>
 												@endif
+												<h6 style="margin:5px">
+													<strong>Vocero: {{ $hor->vocero }}</strong>
+												</h6>
 												<h6 style="margin:0px;">
 													<label>Creado por:</label> {{ ucwords(mb_strtolower($hor->par_nombres)) }} {{ ucwords(mb_strtolower($hor->par_apellidos)) }} &nbsp;&nbsp;
 													<label>Fecha creaci&oacute;n:</label> {{ $hor->pla_fic_fec_creacion }}
@@ -343,7 +358,7 @@
 																        <a style="cursor:pointer;font-size:14px;" name="pla_fic_id" data-datos='<?php echo implode(",",$programacionDetalle[$hor->pla_fic_id][$l][$val10]); ?>' data-programa="{{ ucwords(mb_strtolower($hor->prog_nombre)) }}" data-ficha="{{ $hor->fic_numero }}" data-trimestre="{{ $l }}" data-fec-fin="{{ $programacion[$hor->pla_fic_id][$l]['fechas_fin'][$key10] }}" data-fec-inicio="{{ $programacion[$hor->pla_fic_id][$l]['fechas_inicio'][$key10] }}" data-pla-fic-id="{{ $hor->pla_fic_id }}" value="{{ $hor->pla_fic_id }}" class="modificar">Modificar</a> &nbsp;&nbsp;
 																    <?php } ?>
 																    <a style="cursor:pointer;font-size:14px;" name="pla_fic_id" data-programa="{{ ucwords(mb_strtolower($hor->prog_nombre)) }}" data-ficha="{{ $hor->fic_numero }}" data-trimestre="{{ $l }}" data-fec-fin="{{ $programacion[$hor->pla_fic_id][$l]['fechas_fin'][$key10] }}" data-fec-inicio="{{ $programacion[$hor->pla_fic_id][$l]['fechas_inicio'][$key10] }}" data-pla-fic-id="{{ $hor->pla_fic_id }}" value="{{ $hor->pla_fic_id }}" class="agregar">Agregar</a> &nbsp;&nbsp; 
-																    <a style="cursor:pointer;font-size:14px;" name="pla_fic_id" data-programa="{{ ucwords(mb_strtolower($hor->prog_nombre)) }}" data-ficha="{{ $hor->fic_numero }}" data-trimestre="{{ $l }}" data-fec-fin="{{ $programacion[$hor->pla_fic_id][$l]['fechas_fin'][$key10] }}" data-fec-inicio="{{ $programacion[$hor->pla_fic_id][$l]['fechas_inicio'][$key10] }}" data-pla-fic-id="{{ $hor->pla_fic_id }}" value="{{ $hor->pla_fic_id }}" class="modificarActividades">Actividades</a>&nbsp;&nbsp;
+																    <a style="cursor:pointer;font-size:14px;" id="descargaracti" data-url="{{url('seguimiento/horario/descargaractividad')}}" name="pla_fic_id" data-programa="{{ ucwords(mb_strtolower($hor->prog_nombre)) }}" data-ficha="{{ $hor->fic_numero }}" data-trimestre="{{ $l }}" data-fec-fin="{{ $programacion[$hor->pla_fic_id][$l]['fechas_fin'][$key10] }}" data-fec-inicio="{{ $programacion[$hor->pla_fic_id][$l]['fechas_inicio'][$key10] }}" data-pla-fic-id="{{ $hor->pla_fic_id }}" value="{{ $hor->pla_fic_id }}" class="modificarActividades">Actividades</a>&nbsp;&nbsp;
                                                                 @endif
                                                                 <a style="cursor:pointer;font-size:14px;" id="aprendices" data-url="{{url('seguimiento/horario/listadoaprendices')}}" data-ficha="{{ $hor->fic_numero }}" data-programa="{{ ucwords(mb_strtolower($hor->prog_nombre)) }}">Listado de aprendices</a>
 															</div>
@@ -974,6 +989,8 @@
 									<div class="text-center" style="margin: 5px 0px 5px 0px;" id="mensaje"></div>
 								</div>
 							</div>
+							<a style="margin:0px;" class="btn btn-info btn-xs btn-descargar">Descargar</a>					
+							<tbody id="listadoactividades"></tbody>
 							<button class="btn btn-success btn-xs">Guardar cambios</button>
 							<a style="margin:0px;" class="btn btn-danger btn-xs" data-dismiss="modal">Cerrar</a>
 						</div>
@@ -1004,6 +1021,7 @@
 								<th style="text-align:center;">Apellidos</th>
 								<th style="text-align:center;">Correo</th>
 								<th style="text-align:center;">Telefono</th>
+								<th style="text-align:center;">Vocero</th> 
 							</tr>
 						</thead>
 						<tbody id="listado_ficha"></tbody>
@@ -1016,6 +1034,16 @@
 			</div>
 		</div>
 	</div>
+@endsection
+@section('plugins-css')
+	<style>
+		section[id]{
+			scroll-margin-top: 70px;
+		}  
+		html{
+			scroll-behavior: smooth;
+		}
+	</style>
 @endsection
 @section('plugins-js')
 	<script type="text/javascript">
@@ -1130,6 +1158,39 @@
 				});
 			});
 		});
+		$(document).on('click','#boton', function(){  
+			if ($('#todo').is(":visible")){           
+            	$('#todo').hide();
+       		}
+       		else{ 
+            	$('#todo').show();
+       		}
+		});		
+		
+		$(document).on('click','#descargaracti', function(){  
+				var url = $(this).attr("data-url");
+				var pla_fic_id = $(this).attr("data-pla-fic-id");
+				var fecha_fin = $(this).attr("data-fec-fin");
+				var fecha_ini = $(this).attr("data-fec-inicio");
+				var programa = $(this).attr("data-programa");
+				var ficha = $(this).attr("data-ficha");
+				$(".title-ficha").text("Ficha: "+ficha);
+				$(".title-pla_fic_id").text("pla_fic_id: "+pla_fic_id);
+				$(".title-programa").text("programa: "+programa);							  
+				$(".title-fecha_ini").text("fecha_ini: "+fecha_ini);							  
+				$(".title-fecha_fin").text("fecha_fin: "+fecha_fin);							  
+				 $.ajax({
+					 url:url,
+					 type:"GET",
+					 data:"pla_fic_id="+pla_fic_id+"&ficha="+ficha+"&programa="+programa+"&fecha_ini="+fecha_ini+"&fecha_fin="+fecha_fin,
+					 success:function (data) {		
+						$("#listadoactividades").html(data);						
+						var url = "descargaractividad?pla_fic_id="+pla_fic_id+"&ficha="+ficha+"&programa="+programa+"&fecha_ini="+fecha_ini+"&fecha_fin="+fecha_fin+"";
+						$(".btn-descargar").attr("href",url); 									
+					}
+				 });
+			});
+			
 		function filterList(param) {
 			document.querySelectorAll(".trimestres").forEach(val => {
 				options = val.options;
@@ -1144,6 +1205,9 @@
 					}
 				}
 			});
+		
 		}
+		
+		
 	</script>
 @endsection

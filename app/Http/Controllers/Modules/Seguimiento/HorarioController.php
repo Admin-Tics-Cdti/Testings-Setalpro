@@ -5798,8 +5798,13 @@ class HorarioController extends Controller {
 				}else {
 					$fase = " - ";
 				}
-
-			    $lista2 = $lista2."<tr>";
+				$competencia = explode("-",$val->pla_fic_act_competencia);
+				$resultado = explode("-",$val->pla_fic_act_resultado);
+				$estilo = "";
+				if (intval($competencia[0]) == 0 or intval($resultado[0]) == 0){
+                    $estilo = "style='background:red;'";
+				}
+			    $lista2 = $lista2."<tr ".$estilo.">";
 				if (isset($exportar)) {
 					$lista2 .= "<td>".$val->par_identificacion."</td>".
 					"<td>".utf8_decode($val->nombre)."</td>";
@@ -5826,9 +5831,12 @@ class HorarioController extends Controller {
 			</style>';
 			if (isset($exportar)) {
 				$tabla.= '<h2>ACTIVIDADES DE LOS INSTRUCTORES</h2><table cellspacing="0" cellpadding="0">'.
+						 '<h3>Nota: Las filas marcadas en color rojo les falta el '.utf8_decode('código').' en la competencia o resultado de aprendizaje.</h3>'.
 				         '<tr id="campos"><th style="text-align:center;">Documento</th><th style="text-align:center;">Nombre completo</th>';
 			}else{
-				$tabla.='<h2>ACTIVIDADES DEL INSTRUCTOR '.strtoupper($actividades[0]->nombre).'</h2><table cellspacing="1" cellpadding="1"><tr id="campos">';
+				$tabla.='<h2>ACTIVIDADES DEL INSTRUCTOR '.strtoupper($actividades[0]->nombre).'</h2>'.
+				'<h3>Nota: Las filas marcadas en color rojo les falta el '.utf8_decode('código').' en la competencia o resultado de aprendizaje.</h3>'.
+				'<table cellspacing="1" cellpadding="1"><tr id="campos">';
 			}
 			$tabla.='
 			<th style="text-align:center;">Ficha</th>
